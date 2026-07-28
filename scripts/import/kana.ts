@@ -44,6 +44,17 @@ const BASIC: Row[] = [
   { row: "pya", type: "combo", hiragana: ["ぴゃ", "ぴゅ", "ぴょ"] },
 ];
 
+/**
+ * Beim Lernen der Kana-Tafel abweichende Umschrift.
+ *
+ * を wird als Wort-Partikel "o" gesprochen, in der Kana-Tafel aber überall
+ * als "wo" gelehrt — sonst stünden あ und を beide unter "o" und die Abfrage
+ * wäre nicht eindeutig beantwortbar.
+ */
+const LESSON_ROMAJI: Record<string, string> = {
+  を: "wo",
+};
+
 function toKatakana(hiragana: string): string {
   return hiragana.replace(/[ぁ-ゖ]/g, (char) =>
     String.fromCharCode(char.charCodeAt(0) + 0x60),
@@ -56,7 +67,7 @@ export async function importKana() {
 
   for (const { row, type, hiragana } of BASIC) {
     for (const character of hiragana) {
-      const romaji = toRomaji(character);
+      const romaji = LESSON_ROMAJI[character] ?? toRomaji(character);
       order += 1;
 
       for (const script of ["hiragana", "katakana"] as const) {
