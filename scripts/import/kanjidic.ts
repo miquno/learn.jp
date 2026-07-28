@@ -12,26 +12,8 @@
  *    dient deshalb nur als grobe Einordnung; für die Lernreihenfolge zählen
  *    Schuljahr (`grade`) und Häufigkeit (`freq`), die beide verlässlich sind.
  */
-import type { JlptLevel } from "../../src/generated/prisma/enums";
-
 import { db } from "./lib/db";
 import { all, first, openGzip, progress, streamElements } from "./lib/source";
-
-/** Alte 4-Stufen-Skala → neue 5-Stufen-Skala, bewusst konservativ. */
-function jlptFrom(old: string | undefined): JlptLevel | null {
-  switch (old) {
-    case "4":
-      return "N5";
-    case "3":
-      return "N4";
-    case "2":
-      return "N2";
-    case "1":
-      return "N1";
-    default:
-      return null;
-  }
-}
 
 function readings(xml: string, type: "ja_on" | "ja_kun"): string[] {
   const out: string[] = [];
@@ -61,7 +43,7 @@ type KanjiRow = {
   strokeCount: number;
   grade: number | null;
   frequency: number | null;
-  jlptLevel: JlptLevel | null;
+  sourceJlpt: number | null;
 };
 
 export async function importKanjidic() {
@@ -99,7 +81,9 @@ export async function importKanjidic() {
       strokeCount,
       grade: Number.isFinite(grade) ? grade : null,
       frequency: Number.isFinite(freq) ? freq : null,
-      jlptLevel: jlptFrom(first(xml, "jlpt")),
+      // Rohwert der alten Skala. Die Umrechnung auf N5–N1 passiert in
+      // scripts/import/jlpt.ts, wo alle Zeichen im Zusammenhang stehen.
+      sourceJlpt: Number(first(xml, "jlpt")) || null,
     });
 
     if (batch.length >= 500) await flush();

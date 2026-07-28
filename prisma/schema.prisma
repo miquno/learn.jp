@@ -208,7 +208,12 @@ model Kanji {
   kunyomi     String[]
   strokeCount Int
 
+  /// Abgeleitete Stufe der heutigen fünfstufigen Skala (siehe scripts/import/jlpt.ts).
   jlptLevel JlptLevel?
+  /// Rohwert aus KANJIDIC2 auf der *alten* vierstufigen Skala (4 = leichteste).
+  /// Getrennt gespeichert, damit die Ableitung wiederholbar bleibt und nicht
+  /// beim zweiten Lauf ihr eigenes Ergebnis als Quelle liest.
+  sourceJlpt Int?
   /// Schuljahr der japanischen Grundschule (1–6) bzw. 8 für Jōyō-Kanji
   /// der Sekundarstufe. Nützlich als Reihenfolge, wo JLPT-Daten fehlen.
   grade     Int?

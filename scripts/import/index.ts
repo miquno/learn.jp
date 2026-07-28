@@ -8,6 +8,7 @@
  * hinzu. Die Rohdaten liegen in data/raw und kommen aus scripts/import/download.sh.
  */
 import { db } from "./lib/db";
+import { assignJlptLevels } from "./jlpt";
 import { importJmdict } from "./jmdict";
 import { importKana } from "./kana";
 import { importKanjidic } from "./kanjidic";
@@ -20,6 +21,8 @@ const STEPS = {
   kanji: { label: "Kanji (KANJIDIC2)", run: importKanjidic },
   strokes: { label: "Strichfolgen (KanjiVG)", run: importKanjiVg },
   sentences: { label: "Beispielsätze (Tatoeba)", run: importTatoeba },
+  // Muss nach Kanji und Wörtern laufen: die Wortstufe hängt an den Zeichen.
+  jlpt: { label: "JLPT-Stufen", run: assignJlptLevels },
 } as const;
 
 type StepName = keyof typeof STEPS;
