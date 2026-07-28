@@ -95,7 +95,9 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tokens AuthToken[]
+  tokens        AuthToken[]
+  srsCards      SrsCard[]
+  dailyActivity DailyActivity[]
 
   @@map("users")
 }
@@ -156,6 +158,8 @@ model Kana {
   row       String
   order     Int
 
+  srsCards SrsCard[]
+
   @@unique([character, script])
   @@index([script, order])
   @@map("kana")
@@ -189,6 +193,7 @@ model Word {
 
   sentences WordSentence[]
   kanji     KanjiWord[]
+  srsCards  SrsCard[]
 
   @@index([jlptLevel, frequency])
   @@index([reading])
@@ -227,6 +232,7 @@ model Kanji {
 
   words    KanjiWord[]
   radicals KanjiRadical[]
+  srsCards SrsCard[]
 
   @@index([jlptLevel, frequency])
   @@index([grade])
@@ -298,4 +304,125 @@ model WordSentence {
   @@id([wordId, sentenceId])
   @@index([sentenceId])
   @@map("word_sentences")
+}
+
+// ---------------------------------------------------------------------------
+// Teil 3 — Lernfortschritt
+//
+// Grundsatz: Fortschritt wird *protokolliert*, nicht nur als Zustand gehalten.
+// Ohne ReviewLog und DailyActivity gäbe es weder Heatmap noch Streak,
+// Rangliste oder Schwächen-Auswertung — und nachträglich lassen sich diese
+// Daten nicht rekonstruieren.
+// ---------------------------------------------------------------------------
+
+enum SrsItemType {
+  kana
+  word
+  kanji
+}
+
+/// Zustände des FSRS-Algorithmus.
+enum SrsState {
+  new
+  learning
+  review
+  relearning
+}
+
+/// Bewertung einer Antwort. Die Zahlenwerte entsprechen FSRS: 1–4.
+enum SrsRating {
+  again
+  hard
+  good
+  easy
+}
+
+model SrsCard {
+  id       String      @id @default(cuid())
+  userId   String
+  user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemType SrsItemType
+
+  // Getrennte Fremdschlüssel statt einer polymorphen ID: so räumt die
+  // Datenbank verwaiste Karten selbst ab, wenn Inhalte neu importiert werden.
+  kanaId  String?
+  kana    Kana?  @relation(fields: [kanaId], references: [id], onDelete: Cascade)
+  wordId  String?
+  word    Word?  @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  kanjiId String?
+  kanji   Kanji? @relation(fields: [kanjiId], references: [id], onDelete: Cascade)
+
+  // FSRS-Zustand
+  state         SrsState  @default(new)
+  due           DateTime  @default(now())
+  stability     Float     @default(0)
+  difficulty    Float     @default(0)
+  elapsedDays   Int       @default(0)
+  scheduledDays Int       @default(0)
+  reps          Int       @default(0)
+  lapses        Int       @default(0)
+  /// Position innerhalb der Lernschritte. Ohne dieses Feld begänne eine Karte
+  /// in der Lernphase bei jeder Wiederholung wieder beim ersten Schritt.
+  learningSteps Int       @default(0)
+  lastReviewAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  logs ReviewLog[]
+
+  // Je Nutzer höchstens eine Karte pro Inhalt. Postgres behandelt NULL-Werte
+  // als verschieden, deshalb stören die jeweils leeren Spalten nicht.
+  @@unique([userId, kanaId])
+  @@unique([userId, wordId])
+  @@unique([userId, kanjiId])
+  @@index([userId, due])
+  @@index([userId, itemType, state])
+  @@map("srs_cards")
+}
+
+model ReviewLog {
+  id     String  @id @default(cuid())
+  cardId String
+  card   SrsCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  /// Doppelt geführt, damit Statistiken über Zeiträume ohne Join auskommen.
+  userId String
+
+  rating SrsRating
+  /// Zustand *vor* dieser Wiederholung — nötig, um den Verlauf später mit
+  /// anderen Parametern neu durchrechnen zu können.
+  state         SrsState
+  stability     Float
+  difficulty    Float
+  elapsedDays   Int
+  scheduledDays Int
+  /// Antwortdauer in Millisekunden. Verrät, ob etwas wirklich saß oder nur
+  /// mühsam erraten wurde.
+  durationMs Int?
+
+  reviewedAt DateTime @default(now())
+
+  @@index([userId, reviewedAt])
+  @@index([cardId, reviewedAt])
+  @@map("review_logs")
+}
+
+/// Eine Zeile je Nutzer und Tag. Grundlage für Heatmap, Streak und Rangliste.
+model DailyActivity {
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Auf UTC-Mitternacht normalisiert. Eine echte Zeitzone je Nutzer fehlt
+  /// noch — wer spätabends lernt, bekommt den Beitrag je nach Ort dem
+  /// Folgetag gutgeschrieben. Für Heatmap und Streak vertretbar, für die
+  /// Rangliste später nachzuziehen.
+  date   DateTime @db.Date
+
+  reviews  Int @default(0)
+  correct  Int @default(0)
+  newItems Int @default(0)
+  seconds  Int @default(0)
+
+  @@id([userId, date])
+  @@index([date])
+  @@map("daily_activity")
 }
