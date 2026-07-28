@@ -1,0 +1,115 @@
+// Schema Teil 1 — Nutzer, Auth, Einstellungen.
+// Inhalte (Kana, Vokabeln, Kanji, Grammatik) kommen in Phase 1,
+// Fortschritt/SRS in Phase 2, Gamification in Phase 6.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  user
+  admin
+}
+
+enum UserStatus {
+  pending
+  active
+  banned
+}
+
+enum UserTier {
+  free
+  premium
+  lifetime
+}
+
+enum JlptLevel {
+  N5
+  N4
+  N3
+  N2
+  N1
+}
+
+enum Locale {
+  de
+  en
+}
+
+enum TokenType {
+  email_verification
+  password_reset
+}
+
+model User {
+  id           String  @id @default(cuid())
+  /// Fortlaufende Nummer für öffentliche Profil-URLs (/profile/1234),
+  /// damit die cuid nicht nach außen wandert.
+  userNumber   Int     @unique @default(autoincrement())
+  email        String  @unique
+  username     String  @unique
+  passwordHash String?
+
+  role   UserRole   @default(user)
+  status UserStatus @default(pending)
+
+  emailVerifiedAt DateTime?
+  avatarUrl       String?
+  discordId       String?   @unique
+
+  // Lernprofil
+  currentLevel JlptLevel?
+  goalLevel    JlptLevel?
+  /// Welche JLPT-Stufen im Review-Pool auftauchen. Leer = alle.
+  reviewLevels JlptLevel[]
+
+  // Einstellungen
+  locale          Locale  @default(de)
+  dailyGoalVocab  Int     @default(5)
+  dailyGoalGrammar Int    @default(2)
+  audioSpeed      Float   @default(1.0)
+  answerFeedback  Boolean @default(true)
+  mascotsEnabled  Boolean @default(true)
+  hideActivity    Boolean @default(false)
+  pushEnabled     Boolean @default(false)
+
+  // Fortschritt auf Kontoebene
+  coins         Int       @default(0)
+  currentStreak Int       @default(0)
+  longestStreak Int       @default(0)
+  lastStudyAt   DateTime?
+
+  // Abo
+  tier                     UserTier  @default(free)
+  trialEndsAt              DateTime?
+  stripeCustomerId         String?   @unique
+  stripeSubscriptionId     String?   @unique
+  stripeSubscriptionStatus String?
+  stripeCurrentPeriodEnd   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tokens AuthToken[]
+
+  @@map("users")
+}
+
+model AuthToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  type      TokenType
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, type])
+  @@map("auth_tokens")
+}
