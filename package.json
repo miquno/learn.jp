@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "download": "bash scripts/import/download.sh",
+    "import": "tsx scripts/import/index.ts",
+    "import:stats": "tsx scripts/import/stats.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.1",
