@@ -18,8 +18,9 @@ export function TopNav({ locale, dict, username, coins }: Props) {
   // statt Link, damit niemand in einen 404 läuft.
   const items: { label: string; href?: string }[] = [
     { label: dict.nav.dashboard, href: `/${locale}/dashboard` },
+    { label: dict.nav.learn, href: `/${locale}/learn/kana` },
+    { label: dict.nav.review, href: `/${locale}/review` },
     { label: dict.nav.roadmap },
-    { label: dict.nav.learn },
     { label: dict.nav.progress },
     { label: dict.nav.avatar },
   ];
