@@ -1,6 +1,6 @@
-// Schema Teil 1 — Nutzer, Auth, Einstellungen.
-// Inhalte (Kana, Vokabeln, Kanji, Grammatik) kommen in Phase 1,
-// Fortschritt/SRS in Phase 2, Gamification in Phase 6.
+// Teil 1 — Nutzer, Auth, Einstellungen.
+// Teil 2 — Lerninhalte (unten): Kana, Vokabeln, Kanji, Radikale, Beispielsätze.
+// Fortschritt/SRS folgt in Phase 2, Grammatik in Phase 3, Gamification in Phase 6.
 
 generator client {
   provider = "prisma-client"
@@ -112,4 +112,185 @@ model AuthToken {
 
   @@index([userId, type])
   @@map("auth_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// Teil 2 — Lerninhalte
+//
+// Alle Inhalte sind nutzerunabhängig und werden per Importer aus offenen
+// Quellen befüllt (scripts/import/). Zweisprachige Felder liegen als JSON
+// `{ de: [...], en: [...] }` statt in Übersetzungstabellen: JMdict und Tatoeba
+// liefern deutsche Fassungen direkt mit, und die Felder werden praktisch
+// immer gemeinsam mit ihrem Datensatz gelesen.
+// ---------------------------------------------------------------------------
+
+enum KanaScript {
+  hiragana
+  katakana
+}
+
+enum KanaType {
+  basic
+  dakuten
+  handakuten
+  combo
+}
+
+/// Konjugationsklasse — bestimmt, welche Formen ein Wort bilden kann.
+enum WordClass {
+  godan
+  ichidan
+  irregular
+  i_adjective
+  na_adjective
+  other
+}
+
+model Kana {
+  id        String     @id @default(cuid())
+  character String
+  romaji    String
+  script    KanaScript
+  type      KanaType   @default(basic)
+  /// Zeile der Kana-Tafel (a, ka, sa …) — die Lernreihenfolge folgt ihr.
+  row       String
+  order     Int
+
+  @@unique([character, script])
+  @@index([script, order])
+  @@map("kana")
+}
+
+model Word {
+  id       String @id @default(cuid())
+  /// JMdict-Eintragsnummer (ent_seq). Stabil über Neuimporte hinweg und
+  /// damit der Anker für idempotente Aktualisierungen.
+  sourceId Int?   @unique
+
+  /// Schreibung in Kanji. Leer bei Wörtern, die nur in Kana existieren.
+  written String?
+  /// Lesung in Kana — immer gesetzt.
+  reading String
+  romaji  String
+
+  /// { de: string[], en: string[] }
+  meanings     Json
+  partOfSpeech String[]
+  wordClass    WordClass @default(other)
+
+  jlptLevel JlptLevel?
+  /// Häufigkeitsrang aus JMdict (kleiner = häufiger). Bestimmt zusammen mit
+  /// dem JLPT-Level die Lernreihenfolge.
+  frequency Int?
+  isCommon  Boolean    @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sentences WordSentence[]
+  kanji     KanjiWord[]
+
+  @@index([jlptLevel, frequency])
+  @@index([reading])
+  @@map("words")
+}
+
+model Kanji {
+  id        String @id @default(cuid())
+  character String @unique
+
+  /// { de: string[], en: string[] }
+  /// Achtung: KANJIDIC2 liefert Englisch, Französisch, Spanisch und
+  /// Portugiesisch — aber kein Deutsch. `de` bleibt nach dem Import leer und
+  /// wird in einem eigenen Schritt gefüllt.
+  meanings    Json
+  onyomi      String[]
+  kunyomi     String[]
+  strokeCount Int
+
+  jlptLevel JlptLevel?
+  /// Schuljahr der japanischen Grundschule (1–6) bzw. 8 für Jōyō-Kanji
+  /// der Sekundarstufe. Nützlich als Reihenfolge, wo JLPT-Daten fehlen.
+  grade     Int?
+  frequency Int?
+
+  /// SVG-Pfade der Striche aus KanjiVG, in Schreibreihenfolge.
+  strokeOrder Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  words    KanjiWord[]
+  radicals KanjiRadical[]
+
+  @@index([jlptLevel, frequency])
+  @@index([grade])
+  @@map("kanji")
+}
+
+model Radical {
+  id        String @id @default(cuid())
+  character String @unique
+  /// { de: string[], en: string[] }
+  meanings    Json
+  reading     String?
+  strokeCount Int
+
+  kanji KanjiRadical[]
+
+  @@map("radicals")
+}
+
+model KanjiRadical {
+  kanjiId   String
+  kanji     Kanji   @relation(fields: [kanjiId], references: [id], onDelete: Cascade)
+  radicalId String
+  radical   Radical @relation(fields: [radicalId], references: [id], onDelete: Cascade)
+
+  @@id([kanjiId, radicalId])
+  @@map("kanji_radicals")
+}
+
+model KanjiWord {
+  kanjiId String
+  kanji   Kanji  @relation(fields: [kanjiId], references: [id], onDelete: Cascade)
+  wordId  String
+  word    Word   @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@id([kanjiId, wordId])
+  @@map("kanji_words")
+}
+
+model Sentence {
+  id       String @id @default(cuid())
+  /// Tatoeba-Satz-ID.
+  sourceId Int?   @unique
+
+  japanese String
+  /// { de?: string, en?: string } — nicht jeder Satz hat beide Sprachen.
+  translations Json
+
+  /// Anzahl enthaltener Kanji und Zeichenlänge bestimmen, ab welchem Niveau
+  /// ein Satz als Beispiel taugt.
+  charCount  Int
+  kanjiCount Int
+  jlptLevel  JlptLevel?
+
+  createdAt DateTime @default(now())
+
+  words WordSentence[]
+
+  @@index([jlptLevel, charCount])
+  @@map("sentences")
+}
+
+model WordSentence {
+  wordId     String
+  word       Word     @relation(fields: [wordId], references: [id], onDelete: Cascade)
+  sentenceId String
+  sentence   Sentence @relation(fields: [sentenceId], references: [id], onDelete: Cascade)
+
+  @@id([wordId, sentenceId])
+  @@index([sentenceId])
+  @@map("word_sentences")
 }
