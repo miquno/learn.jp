@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "appName": "LearnJP",
+    "tagline": "Japanisch lernen, das sich nicht wie Arbeit anfühlt"
+  },
+  "nav": {
+    "dashboard": "Übersicht",
+    "roadmap": "Lernpfad",
+    "learn": "Lernen",
+    "review": "Wiederholen",
+    "practice": "Üben",
+    "progress": "Fortschritt",
+    "avatar": "Avatar",
+    "shop": "Laden",
+    "social": "Freunde",
+    "leaderboard": "Rangliste",
+    "settings": "Einstellungen",
+    "profile": "Profil",
+    "logout": "Abmelden",
+    "login": "Anmelden",
+    "register": "Konto erstellen"
+  },
+  "landing": {
+    "heroTitle": "Von null bis JLPT N1",
+    "heroBody": "Ein durchgehender Lernpfad, ein Wiederholungssystem, das sich an dich anpasst, und Übungen, die man tatsächlich freiwillig macht.",
+    "ctaPrimary": "Kostenlos starten",
+    "ctaSecondary": "Ich habe schon ein Konto",
+    "featureSrsTitle": "Wiederholung mit System",
+    "featureSrsBody": "Jede Vokabel kommt genau dann zurück, wenn du sie sonst vergessen würdest.",
+    "featurePathTitle": "Ein Weg, keine Sackgassen",
+    "featurePathBody": "Kana, Vokabeln, Grammatik, Kanji — in der Reihenfolge, die tatsächlich funktioniert.",
+    "featureFunTitle": "Fortschritt zum Anschauen",
+    "featureFunBody": "Verdiene Münzen und statte deine Figur damit aus. Lernen, das sichtbar wird."
+  },
+  "auth": {
+    "loginTitle": "Willkommen zurück",
+    "loginSubtitle": "Melde dich an, um weiterzulernen.",
+    "registerTitle": "Konto erstellen",
+    "registerSubtitle": "Kostenlos starten, keine Kreditkarte nötig.",
+    "email": "E-Mail",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "submitLogin": "Anmelden",
+    "submitRegister": "Konto erstellen",
+    "switchToRegister": "Noch kein Konto? Jetzt erstellen",
+    "switchToLogin": "Schon ein Konto? Anmelden",
+    "errorInvalid": "E-Mail oder Passwort stimmt nicht.",
+    "errorTaken": "E-Mail oder Benutzername ist bereits vergeben.",
+    "errorGeneric": "Das hat nicht geklappt. Bitte versuch es erneut."
+  },
+  "dashboard": {
+    "title": "Übersicht",
+    "welcome": "Willkommen zurück, {name}",
+    "empty": "Hier entsteht dein Lernfortschritt."
+  },
+  "common": {
+    "loading": "Lädt …",
+    "notFoundTitle": "Seite nicht gefunden",
+    "notFoundBody": "Diese Seite gibt es nicht (mehr).",
+    "backHome": "Zurück zur Startseite",
+    "errorTitle": "Da ist etwas schiefgelaufen",
+    "errorBody": "Der Fehler wurde protokolliert. Versuch es gleich noch einmal.",
+    "retry": "Erneut versuchen"
+  }
+}

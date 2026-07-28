@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "appName": "LearnJP",
+    "tagline": "Japanese that doesn't feel like homework"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "roadmap": "Roadmap",
+    "learn": "Learn",
+    "review": "Review",
+    "practice": "Practice",
+    "progress": "Progress",
+    "avatar": "Avatar",
+    "shop": "Shop",
+    "social": "Friends",
+    "leaderboard": "Leaderboard",
+    "settings": "Settings",
+    "profile": "Profile",
+    "logout": "Sign out",
+    "login": "Sign in",
+    "register": "Create account"
+  },
+  "landing": {
+    "heroTitle": "Zero to JLPT N1",
+    "heroBody": "One continuous learning path, a review system that adapts to you, and practice you'll actually come back to.",
+    "ctaPrimary": "Start free",
+    "ctaSecondary": "I already have an account",
+    "featureSrsTitle": "Reviews with a memory",
+    "featureSrsBody": "Every word comes back exactly when you'd otherwise forget it.",
+    "featurePathTitle": "One path, no dead ends",
+    "featurePathBody": "Kana, vocabulary, grammar, kanji — in the order that actually works.",
+    "featureFunTitle": "Progress you can look at",
+    "featureFunBody": "Earn coins and dress up your character. Learning you can see."
+  },
+  "auth": {
+    "loginTitle": "Welcome back",
+    "loginSubtitle": "Sign in to keep learning.",
+    "registerTitle": "Create your account",
+    "registerSubtitle": "Start free, no card required.",
+    "email": "Email",
+    "username": "Username",
+    "password": "Password",
+    "submitLogin": "Sign in",
+    "submitRegister": "Create account",
+    "switchToRegister": "No account yet? Create one",
+    "switchToLogin": "Already have an account? Sign in",
+    "errorInvalid": "That email or password doesn't match.",
+    "errorTaken": "That email or username is already taken.",
+    "errorGeneric": "That didn't work. Please try again."
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome back, {name}",
+    "empty": "Your progress will show up here."
+  },
+  "common": {
+    "loading": "Loading …",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "This page doesn't exist (anymore).",
+    "backHome": "Back to home",
+    "errorTitle": "Something went wrong",
+    "errorBody": "The error has been logged. Give it another try.",
+    "retry": "Try again"
+  }
+}
