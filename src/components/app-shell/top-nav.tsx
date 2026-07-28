@@ -22,7 +22,7 @@ export function TopNav({ locale, dict, username, coins }: Props) {
     { label: dict.nav.review, href: `/${locale}/review` },
     { label: dict.nav.roadmap },
     { label: dict.nav.progress },
-    { label: dict.nav.avatar },
+    { label: dict.nav.avatar, href: `/${locale}/avatar` },
   ];
 
   return (

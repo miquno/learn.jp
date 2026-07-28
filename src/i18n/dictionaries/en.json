@@ -102,6 +102,40 @@
     "doneBody": "{correct} of {total} correct.",
     "backToDashboard": "Back to dashboard"
   },
+  "avatar": {
+    "title": "Your character",
+    "intro": "Earn coins while you learn and dress up your character with them.",
+    "appearance": "Appearance",
+    "base": "Body",
+    "feminine": "Feminine",
+    "masculine": "Masculine",
+    "skin": "Skin tone",
+    "hair": "Hair colour",
+    "wardrobe": "Wardrobe",
+    "shop": "Shop",
+    "equip": "Wear",
+    "equipped": "Worn",
+    "buy": "Buy",
+    "owned": "Owned",
+    "tooExpensive": "Not enough coins",
+    "coins": "coins",
+    "emptyShop": "Everything bought. Impressive.",
+    "slot": {
+      "hair": "Hair",
+      "top": "Top",
+      "bottom": "Bottom",
+      "shoes": "Shoes",
+      "accessory": "Accessory",
+      "background": "Background"
+    },
+    "rarity": {
+      "common": "Common",
+      "uncommon": "Uncommon",
+      "rare": "Rare",
+      "epic": "Epic",
+      "legendary": "Legendary"
+    }
+  },
   "credits": {
     "title": "Data sources",
     "intro": "The learning content in this app comes from open data projects. Their licenses require attribution — here it is, with thanks to everyone who has done this work over decades.",

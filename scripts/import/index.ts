@@ -13,6 +13,7 @@ import { importJmdict } from "./jmdict";
 import { importKana } from "./kana";
 import { importKanjidic } from "./kanjidic";
 import { importKanjiVg } from "./kanjivg";
+import { importShop } from "./shop";
 import { importTatoeba } from "./tatoeba";
 
 const STEPS = {
@@ -23,6 +24,7 @@ const STEPS = {
   sentences: { label: "Beispielsätze (Tatoeba)", run: importTatoeba },
   // Muss nach Kanji und Wörtern laufen: die Wortstufe hängt an den Zeichen.
   jlpt: { label: "JLPT-Stufen", run: assignJlptLevels },
+  shop: { label: "Avatar-Artikel", run: importShop },
 } as const;
 
 type StepName = keyof typeof STEPS;

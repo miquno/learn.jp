@@ -102,6 +102,40 @@
     "doneBody": "{correct} von {total} richtig.",
     "backToDashboard": "Zur Übersicht"
   },
+  "avatar": {
+    "title": "Deine Figur",
+    "intro": "Verdiene Münzen beim Lernen und statte deine Figur damit aus.",
+    "appearance": "Aussehen",
+    "base": "Körper",
+    "feminine": "Weiblich",
+    "masculine": "Männlich",
+    "skin": "Hautton",
+    "hair": "Haarfarbe",
+    "wardrobe": "Garderobe",
+    "shop": "Laden",
+    "equip": "Anlegen",
+    "equipped": "Angelegt",
+    "buy": "Kaufen",
+    "owned": "Im Besitz",
+    "tooExpensive": "Nicht genug Münzen",
+    "coins": "Münzen",
+    "emptyShop": "Alles gekauft. Beeindruckend.",
+    "slot": {
+      "hair": "Haare",
+      "top": "Oberteil",
+      "bottom": "Unterteil",
+      "shoes": "Schuhe",
+      "accessory": "Zubehör",
+      "background": "Hintergrund"
+    },
+    "rarity": {
+      "common": "Gewöhnlich",
+      "uncommon": "Ungewöhnlich",
+      "rare": "Selten",
+      "epic": "Episch",
+      "legendary": "Legendär"
+    }
+  },
   "credits": {
     "title": "Datenquellen",
     "intro": "Die Lerninhalte dieser App stammen aus offenen Datenprojekten. Ihre Lizenzen verlangen Namensnennung — hier ist sie, mit Dank an alle, die diese Arbeit über Jahrzehnte gemacht haben.",
