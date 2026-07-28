@@ -98,6 +98,9 @@ model User {
   tokens        AuthToken[]
   srsCards      SrsCard[]
   dailyActivity DailyActivity[]
+  inventory     InventoryItem[]
+  coinLog       CoinTransaction[]
+  loadout       AvatarLoadout?
 
   @@map("users")
 }
@@ -425,4 +428,114 @@ model DailyActivity {
   @@id([userId, date])
   @@index([date])
   @@map("daily_activity")
+}
+
+// ---------------------------------------------------------------------------
+// Teil 4 — Münzen und Avatar
+//
+// Statt einer baubaren Insel wie beim Vorbild gibt es eine Pixel-Figur, die
+// eingekleidet wird. Zwei Gründe: ein Ebenen-Sprite ist ungleich einfacher
+// als ein isometrischer Kacheleditor mit drei Terrain-Schichten, und die App
+// grenzt sich damit sichtbar vom Vorbild ab.
+// ---------------------------------------------------------------------------
+
+enum ItemRarity {
+  common
+  uncommon
+  rare
+  epic
+  legendary
+}
+
+/// Ebenen der Figur, von hinten nach vorn gezeichnet.
+enum AvatarSlot {
+  background
+  hair_back
+  body
+  bottom
+  top
+  shoes
+  hair
+  accessory
+}
+
+enum AvatarBase {
+  feminine
+  masculine
+}
+
+model ShopItem {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  /// { de: string, en: string }
+  name        Json
+  description Json
+
+  slot   AvatarSlot
+  rarity ItemRarity
+  price  Int
+
+  /// Schlüssel der Grafik in src/lib/avatar/parts.ts. Die Zeichnungen liegen
+  /// im Code, nicht als Bilddateien — so bleiben sie in jeder Auflösung
+  /// scharf und lassen sich umfärben.
+  assetKey String
+
+  /// Nur für diese Basis verwendbar. Leer = passt auf beide.
+  onlyBase AvatarBase?
+
+  order Int @default(0)
+
+  inventory InventoryItem[]
+
+  @@index([slot, price])
+  @@map("shop_items")
+}
+
+model InventoryItem {
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  itemId     String
+  item       ShopItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  acquiredAt DateTime @default(now())
+
+  @@id([userId, itemId])
+  @@map("inventory_items")
+}
+
+model AvatarLoadout {
+  userId String     @id
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  base   AvatarBase @default(feminine)
+
+  /// Hex-Farben, mit denen Haut und Haare eingefärbt werden.
+  skinTone  String @default("#f2c9a0")
+  hairColor String @default("#3b2a24")
+
+  /// { slot: shopItemId } — nur belegte Ebenen stehen drin.
+  equipped Json @default("{}")
+
+  updatedAt DateTime @updatedAt
+
+  @@map("avatar_loadouts")
+}
+
+/// Jede Münzbewegung einzeln. Der Kontostand am Nutzer ist die laufende
+/// Summe; stimmen beide nicht überein, ist etwas schiefgelaufen und lässt
+/// sich hier nachvollziehen.
+model CoinTransaction {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// Positiv beim Verdienen, negativ beim Kauf.
+  delta  Int
+  reason String
+  /// Bezug je nach Grund: Karten-ID beim Lernen, Artikel-ID beim Kauf.
+  refId  String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@map("coin_transactions")
 }

@@ -34,6 +34,11 @@ export async function applyReview(
   const wasNew = card.state === "new";
   const { card: next, log } = schedule(card, rating, now);
 
+  // Münzen nur für richtige Antworten, und für neue Zeichen etwas mehr.
+  // Falsche Antworten kosten nichts — Lernende sollen raten dürfen, ohne
+  // dafür bestraft zu werden.
+  const coins = rating === "again" ? 0 : wasNew ? 3 : 1;
+
   await db.$transaction([
     db.srsCard.update({ where: { id: cardId }, data: next }),
     db.reviewLog.create({
@@ -56,6 +61,19 @@ export async function applyReview(
         seconds: { increment: Math.round((durationMs ?? 0) / 1000) },
       },
     }),
+    // Der Kontostand am Nutzer ist die laufende Summe des Protokolls. Beides
+    // in derselben Transaktion, damit sie nicht auseinanderlaufen können.
+    ...(coins > 0
+      ? [
+          db.user.update({
+            where: { id: userId },
+            data: { coins: { increment: coins } },
+          }),
+          db.coinTransaction.create({
+            data: { userId, delta: coins, reason: "review", refId: cardId },
+          }),
+        ]
+      : []),
   ]);
 
   await updateStreak(userId, now);
