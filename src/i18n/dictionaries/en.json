@@ -53,6 +53,17 @@
     "welcome": "Welcome back, {name}",
     "empty": "Your progress will show up here."
   },
+  "credits": {
+    "title": "Data sources",
+    "intro": "The learning content in this app comes from open data projects. Their licenses require attribution — here it is, with thanks to everyone who has done this work over decades.",
+    "licenseLabel": "License",
+    "usedFor": "Used for",
+    "jmdictUse": "Vocabulary with German and English meanings, parts of speech and frequency",
+    "kanjidicUse": "Kanji with readings, stroke counts, school grade and frequency",
+    "kanjivgUse": "Stroke order for tracing and animation",
+    "tatoebaUse": "Example sentences with German and English translations",
+    "note": "Modifications to the data (selection, reshaping, linking) were made for this app and are not the responsibility of the original projects."
+  },
   "common": {
     "loading": "Loading …",
     "notFoundTitle": "Page not found",

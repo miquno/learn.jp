@@ -53,6 +53,17 @@
     "welcome": "Willkommen zurück, {name}",
     "empty": "Hier entsteht dein Lernfortschritt."
   },
+  "credits": {
+    "title": "Datenquellen",
+    "intro": "Die Lerninhalte dieser App stammen aus offenen Datenprojekten. Ihre Lizenzen verlangen Namensnennung — hier ist sie, mit Dank an alle, die diese Arbeit über Jahrzehnte gemacht haben.",
+    "licenseLabel": "Lizenz",
+    "usedFor": "Verwendet für",
+    "jmdictUse": "Vokabeln mit deutschen und englischen Bedeutungen, Wortarten und Häufigkeit",
+    "kanjidicUse": "Kanji mit Lesungen, Strichzahl, Schuljahr und Häufigkeit",
+    "kanjivgUse": "Strichfolgen zum Nachzeichnen und Animieren",
+    "tatoebaUse": "Beispielsätze mit deutschen und englischen Übersetzungen",
+    "note": "Änderungen an den Daten (Auswahl, Umformung, Verknüpfung) wurden für diese App vorgenommen und liegen nicht in der Verantwortung der ursprünglichen Projekte."
+  },
   "common": {
     "loading": "Lädt …",
     "notFoundTitle": "Seite nicht gefunden",
