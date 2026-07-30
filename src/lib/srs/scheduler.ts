@@ -14,14 +14,14 @@ import type { SrsCard } from "@/generated/prisma/client";
 import type { SrsRating, SrsState } from "@/generated/prisma/enums";
 
 /**
- * FSRS statt SM-2 (dem Algorithmus von Anki und den meisten Klonen): FSRS
- * modelliert Gedächtnisstabilität und Schwierigkeit getrennt und trifft die
- * Wiederholungszeitpunkte messbar besser. `ts-fsrs` ist MIT-lizenziert und
- * die Referenzumsetzung.
+ * FSRS instead of SM-2 (the algorithm behind Anki and most of its clones):
+ * FSRS models memory stability and difficulty separately and places review
+ * times measurably better. `ts-fsrs` is MIT-licensed and the reference
+ * implementation.
  *
- * Fuzz ist eingeschaltet: ohne die kleine Zufallsstreuung sammeln sich alle
- * am selben Tag gelernten Karten für immer am selben Tag — nach ein paar
- * Wochen stehen dann 300 Wiederholungen an einem Tag und null am nächsten.
+ * Fuzz is enabled: without that small random spread, every card learned on
+ * the same day stays clustered on the same day forever — after a few weeks
+ * that means 300 reviews on one day and none the next.
  */
 const scheduler = fsrs(
   generatorParameters({
@@ -30,8 +30,8 @@ const scheduler = fsrs(
   }),
 );
 
-// `Grade` statt `Rating`: FSRS kennt zusätzlich `Manual`, das beim Planen
-// nicht erlaubt ist. Die vier Bewertungen der App sind genau die Grades.
+// `Grade` rather than `Rating`: FSRS also knows `Manual`, which is not allowed
+// when scheduling. The app's four ratings are exactly the grades.
 const RATING_TO_FSRS: Record<SrsRating, Grade> = {
   again: Rating.Again,
   hard: Rating.Hard,
@@ -53,7 +53,7 @@ const FSRS_TO_STATE: Record<State, SrsState> = {
   [State.Relearning]: "relearning",
 };
 
-/** Die für FSRS relevanten Felder einer gespeicherten Karte. */
+/** The fields of a stored card that matter to FSRS. */
 type StoredCard = Pick<
   SrsCard,
   | "state"
@@ -69,9 +69,9 @@ type StoredCard = Pick<
 >;
 
 export type ScheduleResult = {
-  /** Neuer Kartenzustand, direkt als Prisma-Update verwendbar. */
+  /** New card state, usable directly as a Prisma update. */
   card: StoredCard;
-  /** Zustand *vor* der Bewertung — wandert unverändert ins Protokoll. */
+  /** State *before* the rating — goes into the log unchanged. */
   log: {
     state: SrsState;
     stability: number;
@@ -111,12 +111,12 @@ function fromFsrs(card: FsrsCard): StoredCard {
   };
 }
 
-/** Ausgangszustand für eine neu begonnene Karte. */
+/** Starting state for a newly begun card. */
 export function emptyCard(now = new Date()): StoredCard {
   return fromFsrs(createEmptyCard(now));
 }
 
-/** Wendet eine Bewertung an und liefert neuen Zustand samt Protokolleintrag. */
+/** Applies a rating and returns the new state plus a log entry. */
 export function schedule(
   card: StoredCard,
   rating: SrsRating,
@@ -137,8 +137,8 @@ export function schedule(
 }
 
 /**
- * Die vier Fälligkeitstermine, die zur Auswahl stehen — für die Beschriftung
- * der Antwortknöpfe („nochmal · 10 min · 1 Tag · 4 Tage").
+ * The four due dates on offer — for labelling the rating buttons
+ * ("again · 10 min · 1 day · 4 days").
  */
 export function previewIntervals(card: StoredCard, now = new Date()) {
   const options = scheduler.repeat(toFsrs(card), now);

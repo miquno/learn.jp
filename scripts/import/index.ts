@@ -1,11 +1,11 @@
 /**
- * Importer-Läufer.
+ * Importer runner.
  *
- *   npm run import            — alle Schritte in Reihenfolge
- *   npm run import kanji      — nur einzelne Schritte
+ *   npm run import            — every step in order
+ *   npm run import kanji      — individual steps only
  *
- * Alle Schritte sind idempotent: mehrfaches Ausführen fügt nichts doppelt
- * hinzu. Die Rohdaten liegen in data/raw und kommen aus scripts/import/download.sh.
+ * All steps are idempotent: running them again adds nothing twice. The raw
+ * data lives in data/raw and comes from scripts/import/download.sh.
  */
 import { db } from "./lib/db";
 import { assignJlptLevels } from "./jlpt";
@@ -18,13 +18,13 @@ import { importTatoeba } from "./tatoeba";
 
 const STEPS = {
   kana: { label: "Kana", run: importKana },
-  words: { label: "Wörter (JMdict)", run: importJmdict },
+  words: { label: "Words (JMdict)", run: importJmdict },
   kanji: { label: "Kanji (KANJIDIC2)", run: importKanjidic },
-  strokes: { label: "Strichfolgen (KanjiVG)", run: importKanjiVg },
-  sentences: { label: "Beispielsätze (Tatoeba)", run: importTatoeba },
-  // Muss nach Kanji und Wörtern laufen: die Wortstufe hängt an den Zeichen.
-  jlpt: { label: "JLPT-Stufen", run: assignJlptLevels },
-  shop: { label: "Avatar-Artikel", run: importShop },
+  strokes: { label: "Stroke order (KanjiVG)", run: importKanjiVg },
+  sentences: { label: "Example sentences (Tatoeba)", run: importTatoeba },
+  // Must run after kanji and words: the word level depends on the characters.
+  jlpt: { label: "JLPT levels", run: assignJlptLevels },
+  shop: { label: "Avatar items", run: importShop },
 } as const;
 
 type StepName = keyof typeof STEPS;
@@ -33,13 +33,13 @@ async function main() {
   const requested = process.argv.slice(2) as StepName[];
   const unknown = requested.filter((name) => !(name in STEPS));
   if (unknown.length > 0) {
-    console.error(`Unbekannte Schritte: ${unknown.join(", ")}`);
-    console.error(`Verfügbar: ${Object.keys(STEPS).join(", ")}`);
+    console.error(`Unknown steps: ${unknown.join(", ")}`);
+    console.error(`Available: ${Object.keys(STEPS).join(", ")}`);
     process.exit(1);
   }
 
-  // Strichfolgen setzen die Kanji voraus — die Reihenfolge in STEPS ist die
-  // fachlich richtige und wird auch bei Teilauswahl beibehalten.
+  // Stroke order requires the kanji — the order in STEPS is the correct one
+  // and is kept even when only a subset is selected.
   const steps = (Object.keys(STEPS) as StepName[]).filter(
     (name) => requested.length === 0 || requested.includes(name),
   );
@@ -52,12 +52,12 @@ async function main() {
   }
 
   const seconds = Math.round((Date.now() - startedAt) / 1000);
-  console.log(`\nFertig in ${Math.floor(seconds / 60)}m ${seconds % 60}s.`);
+  console.log(`\nDone in ${Math.floor(seconds / 60)}m ${seconds % 60}s.`);
 }
 
 main()
   .catch((error) => {
-    console.error("\nImport abgebrochen:", error);
+    console.error("\nImport aborted:", error);
     process.exitCode = 1;
   })
   .finally(() => db.$disconnect());

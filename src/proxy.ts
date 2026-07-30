@@ -5,10 +5,10 @@ import { locales, matchLocale } from "@/i18n/config";
 const LOCALE_COOKIE = "locale";
 
 /**
- * Sorgt dafür, dass jede Seiten-URL ein Sprachpräfix trägt (`/de/...`).
- * Bewusst nur Weiterleitung — die Zugriffsprüfung passiert serverseitig im
- * Layout unter `(app)`, weil Proxy laut Next-Doku keine vollwertige
- * Autorisierungslösung sein soll.
+ * Makes sure every page URL carries a locale prefix (`/de/...`).
+ * Redirect only, on purpose — the access check happens server-side in the
+ * layout under `(app)`, because per the Next docs a proxy is not meant to be
+ * a full authorization solution.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -30,6 +30,6 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Alles außer Next-Interna, API-Routen und Dateien mit Endung.
+  // Everything except Next internals, API routes and files with an extension.
   matcher: ["/((?!_next|api|.*\\..*).*)"],
 };

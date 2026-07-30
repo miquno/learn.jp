@@ -1,8 +1,8 @@
 import * as Sentry from "@sentry/nextjs";
 
 export async function register() {
-  // Ohne DSN (z. B. lokal) wird Sentry.init nie aufgerufen — alle Sentry.*-
-  // Aufrufe an anderer Stelle laufen dann folgenlos ins Leere.
+  // Without a DSN (e.g. locally) Sentry.init is never called — every Sentry.*
+  // call elsewhere then does nothing.
   if (!process.env.SENTRY_DSN) return;
 
   Sentry.init({

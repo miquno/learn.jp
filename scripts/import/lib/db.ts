@@ -4,8 +4,8 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 import { PrismaClient } from "../../../src/generated/prisma/client";
 
-// Eigener Client für die Importer: die Skripte laufen außerhalb von Next,
-// brauchen kein Hot-Reload-Handling und sollen sich am Ende sauber trennen.
+// Dedicated client for the importers: the scripts run outside Next, need no
+// hot-reload handling and should disconnect cleanly at the end.
 export const db = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
 });

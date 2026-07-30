@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 /*
-  Design-Tokens. Dunkles Theme als Grundlage — die App wird abends und
-  nebenbei benutzt, nicht am hellen Schreibtisch.
+  Design tokens. A dark theme as the base — this app gets used in the evening
+  and on the side, not at a bright desk.
 */
 @theme {
-  /* Flächen, von hinten nach vorn */
+  /* Surfaces, back to front */
   --color-surface-base: oklch(0.19 0.015 265);
   --color-surface-raised: oklch(0.23 0.016 265);
   --color-surface-overlay: oklch(0.27 0.018 265);
@@ -17,18 +17,18 @@
   --color-content-muted: oklch(0.68 0.012 265);
   --color-content-faint: oklch(0.55 0.014 265);
 
-  /* Akzent */
+  /* Accent */
   --color-accent: oklch(0.66 0.19 285);
   --color-accent-hover: oklch(0.71 0.19 285);
   --color-accent-soft: oklch(0.35 0.09 285);
   --color-accent-contrast: oklch(0.15 0.02 285);
 
-  /* Signalfarben */
+  /* Signal colours */
   --color-positive: oklch(0.74 0.17 155);
   --color-negative: oklch(0.68 0.19 20);
   --color-coin: oklch(0.82 0.16 85);
 
-  /* Seltenheitsstufen für Shop-Gegenstände */
+  /* Rarity tiers for shop items */
   --color-rarity-common: oklch(0.68 0.012 265);
   --color-rarity-uncommon: oklch(0.74 0.15 155);
   --color-rarity-rare: oklch(0.70 0.16 245);
@@ -39,8 +39,8 @@
 
   --font-sans:
     ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  /* Japanische Schrift braucht eine eigene Kette, sonst rendert der Browser
-     Kanji in einer Ersatzschrift mit falschen Strichformen. */
+  /* Japanese needs its own stack, or the browser renders kanji in a fallback
+     face with wrong stroke shapes. */
   --font-jp:
     "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP",
     "Meiryo", sans-serif;

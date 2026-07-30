@@ -17,8 +17,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [
     Credentials({
       credentials: {
-        email: { label: "E-Mail", type: "email" },
-        password: { label: "Passwort", type: "password" },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         const parsed = credentialsSchema.safeParse(credentials);
@@ -28,8 +28,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: { email: parsed.data.email },
         });
 
-        // Auch ohne Treffer wird gehasht, damit die Antwortzeit nicht
-        // verrät, ob die E-Mail existiert.
+        // A hash is compared even without a match, so response time doesn't
+        // reveal whether the email address exists.
         const hash = user?.passwordHash ?? "$2a$10$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvalidin";
         const valid = await bcrypt.compare(parsed.data.password, hash);
 

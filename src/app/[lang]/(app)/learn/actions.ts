@@ -12,7 +12,7 @@ const ratingSchema = z.enum(["again", "hard", "good", "easy"]);
 async function requireUserId() {
   const session = await auth();
   const id = session?.user?.id;
-  if (!id) throw new Error("Nicht angemeldet");
+  if (!id) throw new Error("Not signed in");
   return id;
 }
 
@@ -27,9 +27,9 @@ export async function beginKanaLesson(kanaIds: string[], lang: string) {
 }
 
 /**
- * Eine Antwort je Aufruf. Next reiht Server Actions pro Client ohnehin
- * sequenziell auf — was hier genau richtig ist, weil auch die Person eine
- * Karte nach der anderen beantwortet.
+ * One answer per call. Next queues server actions per client sequentially
+ * anyway — which is exactly right here, because the learner also answers one
+ * card at a time.
  */
 export async function submitAnswer(
   cardId: string,
@@ -38,7 +38,7 @@ export async function submitAnswer(
 ) {
   const userId = await requireUserId();
   const parsed = ratingSchema.safeParse(rating);
-  if (!parsed.success) throw new Error("Ungültige Bewertung");
+  if (!parsed.success) throw new Error("Invalid rating");
 
   await applyReview(userId, cardId, parsed.data, durationMs);
 }

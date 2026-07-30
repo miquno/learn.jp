@@ -2,7 +2,7 @@ import "server-only";
 
 import { db } from "@/lib/db";
 
-/** Wie viele Wochen die Aktivitätskarte zeigt. */
+/** How many weeks the activity heatmap shows. */
 export const HEATMAP_WEEKS = 26;
 
 export type ActivityDay = { date: string; reviews: number };
@@ -14,15 +14,15 @@ function utcMidnight(date: Date) {
 }
 
 /**
- * Tagesaktivität für die Heatmap, lückenlos aufgefüllt.
+ * Daily activity for the heatmap, filled in without gaps.
  *
- * Die Datenbank kennt nur Tage mit Aktivität. Für ein gleichmäßiges Raster
- * braucht die Anzeige aber jeden Tag, auch die leeren — das Auffüllen hier
- * spart der Komponente jede Datumsrechnung.
+ * The database only knows days with activity. For an even grid the view needs
+ * every day, including the empty ones — filling them here saves the component
+ * all date arithmetic.
  */
 export async function getActivity(userId: string): Promise<ActivityDay[]> {
   const today = utcMidnight(new Date());
-  // Auf den zurückliegenden Sonntag ausrichten, damit die Spalten Wochen sind.
+  // Align to the preceding Sunday so the columns are weeks.
   const start = new Date(today);
   start.setUTCDate(start.getUTCDate() - (HEATMAP_WEEKS * 7 - 1) - today.getUTCDay());
 
@@ -69,8 +69,8 @@ export async function getDashboardStats(userId: string) {
     kanaByScript.map((row) => [row.script, row._count]),
   ) as Record<"hiragana" | "katakana", number>;
 
-  // Als "beherrscht" zählt, was die Lernphase verlassen hat — sonst stünde
-  // der Balken nach der ersten Lektion schon bei 100 %.
+  // Something counts as mastered once it has left the learning phase —
+  // otherwise the bar would sit at 100% after the very first lesson.
   const scriptKnown = { hiragana: 0, katakana: 0 };
   for (const card of startedKana) {
     if (card.state === "review" && card.kana) {

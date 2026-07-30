@@ -1,16 +1,16 @@
 /**
  * KANJIDIC2 → Kanji
  *
- * Zwei Dinge, die man wissen muss:
+ * Two things worth knowing:
  *
- * 1. Bedeutungen gibt es auf Englisch, Französisch, Spanisch und
- *    Portugiesisch — **nicht auf Deutsch**. `meanings.de` bleibt hier leer
- *    und wird in einem eigenen Schritt gefüllt.
- * 2. `<jlpt>` benutzt die *alte* vierstufige Skala (4 = leichteste Stufe),
- *    die 2010 durch fünf Stufen ersetzt wurde. Eine saubere Umrechnung gibt
- *    es nicht: das alte Level 2 wurde auf N2 und N3 aufgeteilt. Der Wert
- *    dient deshalb nur als grobe Einordnung; für die Lernreihenfolge zählen
- *    Schuljahr (`grade`) und Häufigkeit (`freq`), die beide verlässlich sind.
+ * 1. Meanings exist in English, French, Spanish and Portuguese — **not in
+ *    German**. `meanings.de` stays empty here and is filled in a separate
+ *    step.
+ * 2. `<jlpt>` uses the *old* four-step scale (4 = easiest), replaced by five
+ *    levels in 2010. There is no clean conversion: the old level 2 was split
+ *    into N2 and N3. The value therefore serves only as a rough signal;
+ *    school grade and frequency drive the learning order, and both are
+ *    reliable.
  */
 import { db } from "./lib/db";
 import { all, first, openGzip, progress, streamElements } from "./lib/source";
@@ -27,7 +27,7 @@ function readings(xml: string, type: "ja_on" | "ja_kun"): string[] {
 }
 
 function meaningsEn(xml: string): string[] {
-  // Bedeutungen ohne m_lang-Attribut sind englisch.
+  // Meanings without an m_lang attribute are English.
   const out: string[] = [];
   const re = /<meaning>([^<]*)<\/meaning>/g;
   let m: RegExpExecArray | null;
@@ -66,8 +66,8 @@ export async function importKanjidic() {
     if (!character || !Number.isFinite(strokeCount)) continue;
 
     const en = meaningsEn(xml);
-    // Zeichen ohne jede Bedeutung sind Varianten und Kuriosa — für Lernende
-    // wertlos und im Kanji-Browser nur Rauschen.
+    // Characters with no meaning at all are variants and curiosities —
+    // worthless to learners and just noise in the kanji browser.
     if (en.length === 0) continue;
 
     const grade = Number(first(xml, "grade"));
@@ -81,8 +81,8 @@ export async function importKanjidic() {
       strokeCount,
       grade: Number.isFinite(grade) ? grade : null,
       frequency: Number.isFinite(freq) ? freq : null,
-      // Rohwert der alten Skala. Die Umrechnung auf N5–N1 passiert in
-      // scripts/import/jlpt.ts, wo alle Zeichen im Zusammenhang stehen.
+      // Raw value on the old scale. Conversion to N5–N1 happens in
+      // scripts/import/jlpt.ts, where all characters are seen together.
       sourceJlpt: Number(first(xml, "jlpt")) || null,
     });
 
@@ -92,6 +92,6 @@ export async function importKanjidic() {
 
   const total = bar.done();
   const jouyou = await db.kanji.count({ where: { grade: { not: null } } });
-  console.log(`    davon Jōyō-Kanji (mit Schuljahr): ${jouyou}`);
+  console.log(`    of which Jōyō kanji (with a school grade): ${jouyou}`);
   return total;
 }

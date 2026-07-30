@@ -1,37 +1,33 @@
 /**
- * JLPT-Stufen zuordnen.
+ * Assign JLPT levels.
  *
- * Weder JMdict noch KANJIDIC2 liefern die heutigen Stufen: JMdict enthält
- * überhaupt keine, KANJIDIC2 nur die *alte* vierstufige Skala, die 2010 durch
- * fünf Stufen ersetzt wurde (das alte Level 2 wurde auf N2 und N3 aufgeteilt).
- * Offizielle Wortlisten veröffentlicht die JLPT-Organisation seit 2010 nicht
- * mehr; alle kursierenden Listen sind Rekonstruktionen mit unklarer Herkunft
- * und Lizenz.
+ * Neither JMdict nor KANJIDIC2 provides today's levels: JMdict contains none
+ * at all, KANJIDIC2 only the *old* four-step scale that was replaced by five
+ * levels in 2010 (the old level 2 was split into N2 and N3). The JLPT
+ * organisation has not published official word lists since 2010; every list in
+ * circulation is a reconstruction with unclear provenance and licensing.
  *
- * Deshalb wird abgeleitet — aus Daten, die wir sauber lizenziert haben:
+ * So the levels are derived — from data we have cleanly licensed:
  *
- *   Kanji: nach Schuljahr und Häufigkeit sortiert, dann auf die allgemein
- *   dokumentierten Stufengrößen aufgeteilt (N5 103, N4 181, N3 370, N2 380,
- *   N1 1136 Zeichen). Wo KANJIDIC2 eine alte Stufe kennt, hat sie Vorrang.
+ *   Kanji: sorted by school grade and frequency, then split into the commonly
+ *   documented level sizes (N5 103, N4 181, N3 370, N2 380, N1 1136
+ *   characters). The old KANJIDIC2 level acts as the primary sort key.
  *
- *   Wörter: die Stufe ist das Schwerere aus (a) der Häufigkeit und (b) der
- *   schwierigsten enthaltenen Kanji-Stufe. Ein Wort kann nicht leichter sein
- *   als das schwerste Zeichen, aus dem es besteht — 「憂鬱」 ist kein
- *   N5-Wort, egal wie häufig es vorkommt.
+ *   Words: the level is the harder of (a) frequency and (b) the hardest kanji
+ *   contained, capped at one step above the frequency band.
  *
- * Das ist eine Näherung, keine amtliche Einstufung. Sie ist gut genug, um die
- * Lernreihenfolge und die Fortschrittsanzeige zu tragen, und kann später
- * jederzeit durch eine kuratierte Liste ersetzt werden — die Stufe steht in
- * genau einer Spalte je Tabelle.
+ * This is an approximation, not an official classification. It is good enough
+ * to carry learning order and the progress display, and can be replaced by a
+ * curated list at any time — the level lives in exactly one column per table.
  *
- * Bekannte Schwäche bei Wörtern: JMdicts Häufigkeitsdaten stammen aus einem
- * Zeitungskorpus (Mainichi Shimbun). Politik- und Verwaltungsvokabular ist
- * darin überrepräsentiert, weshalb 「安保」 (Sicherheitsvertrag) und
- * 「委員長」 (Ausschussvorsitzender) auf N5 landen, obwohl sie in keinem
- * Anfängerkurs vorkommen. Die Kanji-Einstufung ist davon nicht betroffen —
- * sie stimmt mit den veröffentlichten Listen praktisch überein. Für den
- * Wortschatz der ersten beiden Stufen lohnt sich später eine kuratierte
- * Liste; ab N3 ist die Näherung unkritisch.
+ * Known weakness for words: JMdict's frequency data comes from a newspaper
+ * corpus (Mainichi Shimbun). Political and administrative vocabulary is
+ * over-represented there, which is why 「安保」 (security treaty) and
+ * 「委員長」 (committee chairman) land on N5 even though they appear in no
+ * beginner course. The kanji classification is unaffected — it matches the
+ * published lists almost exactly. A curated list is worth it for the
+ * vocabulary of the first two levels; from N3 upwards the approximation is
+ * harmless.
  */
 import type { JlptLevel } from "../../src/generated/prisma/enums";
 
@@ -40,7 +36,7 @@ import { progress } from "./lib/source";
 
 const LEVELS: JlptLevel[] = ["N5", "N4", "N3", "N2", "N1"];
 
-/** Übliche Zeichenzahlen je Stufe, kumulativ gelesen. */
+/** Usual character counts per level. */
 const KANJI_PER_LEVEL: Record<JlptLevel, number> = {
   N5: 103,
   N4: 181,
@@ -49,7 +45,7 @@ const KANJI_PER_LEVEL: Record<JlptLevel, number> = {
   N1: 1136,
 };
 
-/** Häufigkeitsgrenzen für Wörter (JMdict-Rang, kleiner = häufiger). */
+/** Frequency bands for words (JMdict rank, lower = more common). */
 const WORD_FREQUENCY_BANDS: [JlptLevel, number][] = [
   ["N5", 1500],
   ["N4", 3000],
@@ -63,29 +59,29 @@ const harder = (a: JlptLevel, b: JlptLevel) =>
 async function assignKanji() {
   const bar = progress("Kanji");
 
-  // Nur Zeichen, die überhaupt für den JLPT infrage kommen: Jōyō-Kanji oder
-  // solche mit alter JLPT-Stufe. Der Rest bleibt ohne Stufe — das sind
-  // Namenszeichen und Seltenheiten, die in keiner Prüfung vorkommen.
-  // Erst alles zurücksetzen. Es gibt mehr Kandidaten als Plätze in den
-  // Stufen; ohne das Zurücksetzen behielten die Übriggebliebenen ihre Stufe
-  // aus dem vorherigen Lauf und die Verteilung wüchse bei jedem Aufruf.
+  // Reset everything first. There are more candidates than slots in the
+  // levels; without the reset the leftovers would keep their level from the
+  // previous run and the distribution would grow on every invocation.
   await db.kanji.updateMany({ data: { jlptLevel: null } });
 
+  // Only characters that can appear in the JLPT at all: Jōyō kanji or ones
+  // with an old JLPT level. The rest stays without a level — those are name
+  // characters and rarities that appear in no exam.
   const candidates = await db.kanji.findMany({
     where: { OR: [{ grade: { not: null } }, { sourceJlpt: { not: null } }] },
     select: { id: true, grade: true, frequency: true, sourceJlpt: true },
-    // Ohne ORDER BY ist die Reihenfolge aus Postgres beliebig — bei
-    // Gleichstand fiele die Einteilung sonst je Lauf anders aus.
+    // Without ORDER BY the order from Postgres is arbitrary — on ties the
+    // split would otherwise come out differently on every run.
     orderBy: { character: "asc" },
   });
 
-  // Sortierung nach Lernreihenfolge. Die alte KANJIDIC2-Stufe stammt aus den
-  // echten Listen vor 2010 und ist das stärkste Signal — sie darf die
-  // Einteilung aber nicht *überschreiben*, sonst landet fast nichts auf N3:
-  // die alte Skala kannte diese Stufe gar nicht, N3 entstand erst durch das
-  // Aufteilen des alten Levels 2.
-  // Alte Skala: 4 ist die leichteste Stufe, 1 die schwerste, kein Wert = am
-  // schwersten. Umgedreht ergibt das die Lernreihenfolge.
+  // The old KANJIDIC2 level comes from the real pre-2010 lists and is the
+  // strongest signal — but it must not *override* the split, or almost nothing
+  // lands on N3: the old scale had no such level, N3 only came into being when
+  // the old level 2 was split.
+  //
+  // On that scale 4 is the easiest level, 1 the hardest and no value hardest
+  // of all. Inverted, that gives the learning order.
   const oldRank = (value: number | null) => (value === null ? 5 : 4 - value);
 
   candidates.sort((a, b) => {
@@ -116,7 +112,7 @@ async function assignKanji() {
 }
 
 async function assignWords() {
-  const bar = progress("Wörter");
+  const bar = progress("Words");
 
   const kanjiLevels = new Map<string, JlptLevel>();
   for (const kanji of await db.kanji.findMany({
@@ -130,8 +126,8 @@ async function assignWords() {
     select: { id: true, written: true, frequency: true },
   });
 
-  // Nach Stufe gruppiert aktualisieren: fünf Massenoperationen statt
-  // 30.000 Einzelabfragen.
+  // Update grouped by level: five bulk operations instead of 30,000
+  // individual queries.
   const buckets = new Map<JlptLevel, string[]>(
     LEVELS.map((level) => [level, []]),
   );
@@ -143,28 +139,24 @@ async function assignWords() {
       : WORD_FREQUENCY_BANDS.find(([, max]) => frequency <= max);
     const byFrequency: JlptLevel = band ? band[0] : "N1";
 
-    // Schwierigstes enthaltenes Zeichen.
+    // Hardest character contained.
     let byKanji: JlptLevel | null = null;
     for (const char of word.written ?? "") {
       const kanjiLevel = kanjiLevels.get(char);
       if (kanjiLevel) byKanji = byKanji ? harder(byKanji, kanjiLevel) : kanjiLevel;
-      // Ein Zeichen ganz ohne Stufe ist Fachvokabular oder Namensmaterial.
+      // A character with no level at all is technical or name material.
       else if (/[一-龯]/.test(char)) byKanji = "N1";
     }
 
-    // Die Schrift darf ein Wort anheben, aber höchstens um eine Stufe.
-    // Grund: im JLPT wird Grundwortschatz oft in Kana geschrieben. 「時間」
-    // besteht aus Zeichen, die einzeln später drankommen, ist als Wort aber
-    // Anfängerstoff — die harte Regel "nie leichter als das schwerste
-    // Zeichen" hat es auf N2 geschoben und N5 auf 181 Wörter schrumpfen
-    // lassen.
-    // Für den absoluten Grundwortschatz zählt die Schrift gar nicht: 「私」,
-    // 「時間」 und 「学校」 stehen in jedem Anfängerbuch der ersten Wochen,
-    // obwohl ihre Zeichen einzeln später drankommen. Ohne diese Ausnahme
-    // blieben nur 181 Wörter auf N5 übrig — die veröffentlichte N5-Liste
-    // umfasst rund 800.
+    // For the absolute core vocabulary the writing doesn't count at all:
+    // 「私」, 「時間」 and 「学校」 appear in the first weeks of every beginner
+    // book even though their characters come up individually much later.
     const isCoreVocabulary = frequency !== null && frequency <= 1000;
 
+    // Otherwise the writing may raise a word, but by at most one step: in the
+    // JLPT, basic vocabulary is often written in kana. The hard rule "never
+    // easier than the hardest character" pushed 「時間」 to N2 and shrank N5
+    // to 181 words.
     let level = byFrequency;
     if (byKanji && !isCoreVocabulary) {
       const capped = Math.min(
@@ -194,16 +186,16 @@ export async function assignJlptLevels() {
   await assignKanji();
   await assignWords();
 
-  console.log("\n  Verteilung");
+  console.log("\n  Distribution");
   for (const level of LEVELS) {
     const [words, kanji] = await Promise.all([
       db.word.count({ where: { jlptLevel: level } }),
       db.kanji.count({ where: { jlptLevel: level } }),
     ]);
     console.log(
-      `    ${level}  ${words.toLocaleString("de-DE").padStart(6)} Wörter   ${kanji
-        .toLocaleString("de-DE")
-        .padStart(5)} Kanji`,
+      `    ${level}  ${words.toLocaleString("en-GB").padStart(6)} words   ${kanji
+        .toLocaleString("en-GB")
+        .padStart(5)} kanji`,
     );
   }
 }

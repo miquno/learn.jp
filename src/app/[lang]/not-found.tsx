@@ -4,7 +4,7 @@ import { defaultLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 
 export default async function NotFound() {
-  // not-found.tsx bekommt keine Route-Params — daher die Standardsprache.
+  // not-found.tsx receives no route params — hence the default locale.
   const dict = await getDictionary(defaultLocale);
 
   return (

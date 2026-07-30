@@ -1,12 +1,12 @@
 /**
  * KanjiVG → Kanji.strokeOrder
  *
- * Die Datei enthält pro Zeichen SVG-Pfade in Schreibreihenfolge. Sie ist die
- * Grundlage für die Strichfolge-Animation und für das Nachzeichnen-Spiel.
+ * The file holds SVG paths per character in writing order. It is the basis
+ * for the stroke-order animation and the tracing game.
  *
- * Die ID trägt den Unicode-Codepoint hexadezimal (`kvg:kanji_065e5` → 日).
- * Nur Zeichen, die schon aus KANJIDIC2 in der Datenbank stehen, werden
- * ergänzt — KanjiVG enthält auch Ziffern, Satzzeichen und Kana.
+ * The id carries the Unicode code point in hex (`kvg:kanji_065e5` → 日). Only
+ * characters already in the database from KANJIDIC2 are filled in — KanjiVG
+ * also contains digits, punctuation and kana.
  */
 import { db } from "./lib/db";
 import { openGzip, progress, streamElements } from "./lib/source";
@@ -27,10 +27,10 @@ function paths(xml: string): string[] {
 }
 
 export async function importKanjiVg() {
-  const bar = progress("Strichfolgen");
+  const bar = progress("Stroke orders");
 
-  // Nur bekannte Zeichen ergänzen. Ein Set im Speicher spart ~11.000
-  // Einzelabfragen gegen die Datenbank.
+  // Only fill in known characters. An in-memory set saves ~11,000 individual
+  // database queries.
   const known = new Set(
     (await db.kanji.findMany({ select: { character: true } })).map(
       (k) => k.character,
@@ -51,5 +51,5 @@ export async function importKanjiVg() {
     bar.tick();
   }
 
-  return bar.done(` von ${known.size} Kanji`);
+  return bar.done(` of ${known.size} kanji`);
 }

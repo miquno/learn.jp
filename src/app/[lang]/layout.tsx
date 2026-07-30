@@ -14,8 +14,8 @@ export const viewport: Viewport = {
   themeColor: "#1a1c22",
   width: "device-width",
   initialScale: 1,
-  // Die Übungsspiele setzen auf schnelles Tippen — versehentliches
-  // Doppeltipp-Zoomen stört dabei mehr, als die Zoomsperre schadet.
+  // The practice games rely on fast typing — accidental double-tap zoom is
+  // more annoying than a zoom lock would be helpful.
   maximumScale: 5,
 };
 

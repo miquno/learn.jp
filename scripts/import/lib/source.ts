@@ -11,8 +11,8 @@ export function openGzip(file: string): Readable {
 }
 
 /**
- * Node bringt kein bzip2 mit. Statt eine Abhängigkeit dafür aufzunehmen,
- * wird `bzcat` benutzt — auf macOS und jeder Linux-Distribution vorhanden.
+ * Node has no bzip2. Rather than taking a dependency for it, `bzcat` is used —
+ * present on macOS and every Linux distribution.
  */
 export function openBzip2(file: string): Readable {
   const child = spawn("bzcat", [path.join(RAW_DIR, file)], {
@@ -22,21 +22,20 @@ export function openBzip2(file: string): Readable {
 }
 
 /**
- * Liefert die Rohtexte aller `<tag>…</tag>`-Elemente eines XML-Stroms.
+ * Yields the raw text of every `<tag>…</tag>` element in an XML stream.
  *
- * Bewusst kein XML-Parser: JMdict und KANJIDIC2 sind streng maschinell
- * erzeugt und in dieser Größenordnung (218.000 Einträge, ~350 MB entpackt)
- * ist ein zeichenweise arbeitender Parser langsamer als das Zerschneiden am
- * Elementende. Verschachtelte Elemente gleichen Namens gibt es in keiner der
- * Quellen.
+ * Deliberately not an XML parser: JMdict and KANJIDIC2 are strictly
+ * machine-generated, and at this size (218,000 entries, ~350 MB uncompressed)
+ * a character-by-character parser is slower than slicing at element
+ * boundaries. Neither source nests elements of the same name.
  */
 export async function* streamElements(
   stream: Readable,
   tag: string,
 ): AsyncGenerator<string> {
-  // Das öffnende Tag kann Attribute tragen (`<kanji id="…">`), deshalb wird
-  // nur das Präfix gesucht und danach geprüft, dass wirklich das Tag endet
-  // und nicht ein längerer Name anfängt (`<kanji>` vs. `<kanjivg>`).
+  // The opening tag can carry attributes (`<kanji id="…">`), so only the
+  // prefix is searched and it is then checked that the tag really ends there
+  // rather than a longer name starting (`<kanji>` vs `<kanjivg>`).
   const open = `<${tag}`;
   const close = `</${tag}>`;
   let buffer = "";
@@ -66,9 +65,9 @@ export async function* streamElements(
       buffer = buffer.slice(end + close.length);
     }
 
-    // Der Rest kann nur noch ein angefangenes Element sein. Wenn nicht einmal
-    // ein öffnendes Tag drin steht, ist es Beiwerk (DTD, Kommentare) und kann
-    // weg — sonst wächst der Puffer über die ganze Datei.
+    // What remains can only be a partial element. If it doesn't even contain
+    // an opening tag it is incidental (DTD, comments) and can go — otherwise
+    // the buffer grows to the size of the whole file.
     const lastOpen = buffer.lastIndexOf(open);
     if (lastOpen > 0) buffer = buffer.slice(lastOpen);
     else if (lastOpen === -1 && buffer.length > open.length) {
@@ -77,7 +76,7 @@ export async function* streamElements(
   }
 }
 
-/** Alle Textinhalte eines Elements, z. B. `all(xml, "keb")`. */
+/** All text contents of an element, e.g. `all(xml, "keb")`. */
 export function all(xml: string, tag: string): string[] {
   const out: string[] = [];
   const re = new RegExp(`<${tag}(?:\\s[^>]*)?>([^<]*)</${tag}>`, "g");
@@ -86,7 +85,7 @@ export function all(xml: string, tag: string): string[] {
   return out;
 }
 
-/** Erster Textinhalt eines Elements oder `undefined`. */
+/** First text content of an element, or `undefined`. */
 export function first(xml: string, tag: string): string | undefined {
   return all(xml, tag)[0];
 }
@@ -100,7 +99,7 @@ export function decodeEntities(value: string): string {
     .replace(/&amp;/g, "&");
 }
 
-/** Fortschrittsanzeige, die eine Zeile überschreibt statt zu scrollen. */
+/** Progress display that overwrites one line instead of scrolling. */
 export function progress(label: string) {
   let count = 0;
   let last = Date.now();
@@ -108,14 +107,14 @@ export function progress(label: string) {
     tick(by = 1) {
       count += by;
       if (Date.now() - last > 400) {
-        process.stdout.write(`\r  ${label}: ${count.toLocaleString("de-DE")}`);
+        process.stdout.write(`\r  ${label}: ${count.toLocaleString("en-GB")}`);
         last = Date.now();
       }
     },
     done(suffix = "") {
-      // Auf Zeilenbreite auffüllen, sonst bleiben Reste der längeren
-      // Zwischenstände hinter der Endzahl stehen.
-      const line = `  ${label}: ${count.toLocaleString("de-DE")}${suffix}`;
+      // Pad to line width, or remnants of the longer intermediate values
+      // linger after the final number.
+      const line = `  ${label}: ${count.toLocaleString("en-GB")}${suffix}`;
       process.stdout.write(`\r${line.padEnd(60)}\n`);
       return count;
     },

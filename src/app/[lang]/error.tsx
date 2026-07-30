@@ -3,6 +3,8 @@
 import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 
+// Error boundaries are client components and receive no route params, so they
+// cannot reach the dictionary. English is the fallback here.
 export default function ErrorBoundary({
   error,
   reset,
@@ -20,17 +22,17 @@ export default function ErrorBoundary({
         誤
       </span>
       <h1 className="text-xl font-semibold text-content-strong">
-        Da ist etwas schiefgelaufen
+        Something went wrong
       </h1>
       <p className="text-content-muted">
-        Der Fehler wurde protokolliert. Versuch es gleich noch einmal.
+        The error has been logged. Give it another try.
       </p>
       <button
         type="button"
         onClick={reset}
         className="mt-2 rounded-lg border border-surface-border px-4 py-2 text-sm text-content-base hover:border-content-faint"
       >
-        Erneut versuchen
+        Try again
       </button>
     </div>
   );

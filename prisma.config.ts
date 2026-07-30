@@ -6,6 +6,6 @@ export default defineConfig({
   datasource: {
     url: env("DATABASE_URL"),
   },
-  // Ein Seed-Skript gibt es erst mit der Content-Pipeline (Phase 1) —
-  // bis dahin würde `prisma migrate reset` sonst auf eine fehlende Datei laufen.
+  // No seed script: content comes from scripts/import/ instead, so
+  // `prisma migrate reset` must not point at a file that doesn't exist.
 });

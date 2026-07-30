@@ -4,9 +4,9 @@ import type { ActivityDay } from "@/lib/srs/stats";
 type Props = { days: ActivityDay[]; dict: Dictionary; locale: string };
 
 /**
- * Vier Stufen statt einer stufenlosen Skala: Ziel ist zu erkennen, *ob*
- * gelernt wurde, nicht wie viel genau. Feinere Abstufungen sind auf 10-Pixel-
- * Kacheln ohnehin nicht unterscheidbar.
+ * Four levels rather than a continuous scale: the point is to see *whether*
+ * studying happened, not exactly how much. Finer gradations aren't
+ * distinguishable on 12-pixel squares anyway.
  */
 function level(reviews: number) {
   if (reviews === 0) return 0;
@@ -25,8 +25,8 @@ const SHADES = [
 ];
 
 export function ActivityHeatmap({ days, dict, locale }: Props) {
-  // In Wochenspalten aufteilen. Die Daten kommen lückenlos und am Sonntag
-  // ausgerichtet aus getActivity, deshalb reicht stumpfes Zerteilen.
+  // Split into week columns. The data arrives gap-free and Sunday-aligned
+  // from getActivity, so plain slicing is enough.
   const weeks: ActivityDay[][] = [];
   for (let i = 0; i < days.length; i += 7) {
     weeks.push(days.slice(i, i + 7));

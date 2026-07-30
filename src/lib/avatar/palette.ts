@@ -1,6 +1,6 @@
 import type { ColorRole } from "./parts";
 
-/** Farbsatz eines Kleidungsstücks. */
+/** Colour set for one garment. */
 export type ItemPalette = {
   primary: string;
   secondary: string;
@@ -8,9 +8,9 @@ export type ItemPalette = {
 };
 
 /**
- * Farben je Grafik. Bewusst im Code statt in der Datenbank: sie gehören zur
- * Zeichnung, nicht zum Katalog — ein Kleidungsstück umzufärben heißt, ein
- * neues Kleidungsstück zu entwerfen.
+ * Colours per artwork. Deliberately in code rather than the database: they
+ * belong to the drawing, not the catalogue — recolouring a garment means
+ * designing a new garment.
  */
 export const ITEM_PALETTES: Record<string, ItemPalette> = {
   top_tee: { primary: "#e8604c", secondary: "#c04435", accent: "#ffffff" },
@@ -30,7 +30,7 @@ export const ITEM_PALETTES: Record<string, ItemPalette> = {
   bg_sakura: { primary: "#f7d3de", secondary: "#7fae6a", accent: "#ee8fae" },
 };
 
-/** Dunklere Variante einer Hex-Farbe — für Umrisse und Schatten. */
+/** Darker variant of a hex colour — for outlines and shading. */
 export function shade(hex: string, amount = 0.62): string {
   const value = hex.replace("#", "");
   const channels = [0, 2, 4].map((offset) =>
@@ -59,7 +59,7 @@ export function resolveColors(
   };
 }
 
-/** Auswahl für die Farbwähler im Avatar-Studio. */
+/** Options for the colour pickers in the avatar studio. */
 export const SKIN_TONES = [
   "#f7dcc0",
   "#f2c9a0",

@@ -1,10 +1,10 @@
 /**
- * Der Artikelkatalog. Kein Import von außen — die Artikel gehören zu den
- * Grafiken in src/lib/avatar/parts.ts und werden zusammen mit ihnen gepflegt.
+ * The item catalogue. Nothing is imported from outside — the items belong to
+ * the artwork in src/lib/avatar/parts.ts and are maintained alongside it.
  *
- * Preisgefüge: gewöhnliche Teile kosten etwa einen Lerntag (rund 40 Münzen),
- * legendäre etwa zwei Wochen. Sichtbaren Fortschritt soll es früh geben,
- * ein Fernziel aber auch.
+ * Pricing: common items cost roughly one day of study (about 40 coins),
+ * legendary ones roughly two weeks. Visible progress should come early, but
+ * there should be a distant goal too.
  */
 import type { AvatarSlot, ItemRarity } from "../../src/generated/prisma/enums";
 
@@ -22,7 +22,7 @@ type Entry = {
 };
 
 const CATALOGUE: Entry[] = [
-  // Haare — der Einstieg, entsprechend günstig.
+  // Hair — the entry point, priced accordingly.
   {
     slug: "hair-short",
     assetKey: "hair_short",
@@ -51,7 +51,7 @@ const CATALOGUE: Entry[] = [
     en: ["Long hair", "Ten more minutes every morning. Worth it."],
   },
 
-  // Oberteile
+  // Tops
   {
     slug: "top-tee",
     assetKey: "top_tee",
@@ -80,7 +80,7 @@ const CATALOGUE: Entry[] = [
     en: ["Sailor blouse", "The classic. Never out of style because it was never in it."],
   },
 
-  // Unterteile
+  // Bottoms
   {
     slug: "bottom-jeans",
     assetKey: "bottom_jeans",
@@ -100,7 +100,7 @@ const CATALOGUE: Entry[] = [
     en: ["Pleated skirt", "The pleats are counted. By someone with time."],
   },
 
-  // Schuhe
+  // Shoes
   {
     slug: "shoes-sneakers",
     assetKey: "shoes_sneakers",
@@ -120,7 +120,7 @@ const CATALOGUE: Entry[] = [
     en: ["Boots", "For weather this place doesn't have."],
   },
 
-  // Zubehör
+  // Accessories
   {
     slug: "acc-glasses",
     assetKey: "acc_glasses",
@@ -140,7 +140,7 @@ const CATALOGUE: Entry[] = [
     en: ["Cat ears", "Nobody asked. Nobody's complaining."],
   },
 
-  // Hintergründe
+  // Backgrounds
   {
     slug: "bg-sky",
     assetKey: "bg_sky",
@@ -162,7 +162,7 @@ const CATALOGUE: Entry[] = [
 ];
 
 export async function importShop() {
-  const bar = progress("Artikel");
+  const bar = progress("Items");
 
   for (const [index, entry] of CATALOGUE.entries()) {
     const data = {
@@ -184,5 +184,5 @@ export async function importShop() {
   }
 
   const free = CATALOGUE.filter((entry) => entry.price === 0).length;
-  bar.done(` (${free} davon kostenlos zum Start)`);
+  bar.done(` (${free} of them free to start with)`);
 }

@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 
 import type { AvatarView } from "@/components/avatar/avatar";
 
-/** Zeichenreihenfolge der Ebenen, von hinten nach vorn. */
+/** Draw order of the layers, back to front. */
 const LAYER_ORDER: AvatarSlot[] = [
   "background",
   "hair_back",
@@ -20,11 +20,11 @@ const LAYER_ORDER: AvatarSlot[] = [
 type Equipped = Partial<Record<AvatarSlot, string>>;
 
 /**
- * Legt Ausstattung und Startgarderobe an, falls noch keine da ist.
+ * Creates the outfit and starter wardrobe if none exists yet.
  *
- * Die kostenlosen Artikel gehören von Anfang an ins Inventar — eine nackte
- * Figur als erster Eindruck wäre ein schlechter Einstieg, und mit "0 Münzen,
- * kauf dir was" fängt niemand gern an.
+ * The free items belong in the inventory from the start — a naked character
+ * as a first impression would be a poor opening, and nobody enjoys starting
+ * with "0 coins, go buy something".
  */
 export async function ensureLoadout(userId: string) {
   const existing = await db.avatarLoadout.findUnique({ where: { userId } });
@@ -45,7 +45,7 @@ export async function ensureLoadout(userId: string) {
   });
 }
 
-/** Ausstattung in die Form, die die Zeichenkomponente erwartet. */
+/** The outfit in the shape the drawing component expects. */
 export async function getAvatarView(userId: string): Promise<AvatarView> {
   const loadout = await ensureLoadout(userId);
   const equipped = (loadout.equipped ?? {}) as Equipped;
@@ -68,8 +68,8 @@ export async function getAvatarView(userId: string): Promise<AvatarView> {
 }
 
 /**
- * Kauf. Prüft Guthaben und Besitz und schreibt beides in einer Transaktion —
- * sonst könnten zwei schnelle Klicks denselben Artikel zweimal abbuchen.
+ * Purchase. Checks balance and ownership and writes both in one transaction —
+ * otherwise two quick clicks could charge for the same item twice.
  */
 export async function buyItem(userId: string, itemId: string) {
   return db.$transaction(async (tx) => {
@@ -98,7 +98,7 @@ export async function buyItem(userId: string, itemId: string) {
   });
 }
 
-/** Ein Teil anlegen — nur, was auch im Inventar liegt. */
+/** Wear an item — only what is actually in the inventory. */
 export async function equipItem(userId: string, itemId: string) {
   const [owned, loadout] = await Promise.all([
     db.inventoryItem.findUnique({

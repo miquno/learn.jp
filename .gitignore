@@ -45,5 +45,5 @@ next-env.d.ts
 # prisma
 /src/generated/prisma
 
-# heruntergeladene Rohdaten für die Content-Importer (JMdict, Tatoeba, …)
+# downloaded raw data for the content importers (JMdict, Tatoeba, …)
 /data

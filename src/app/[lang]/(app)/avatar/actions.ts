@@ -9,7 +9,7 @@ import { auth } from "@/lib/auth";
 
 const appearanceSchema = z.object({
   base: z.enum(["feminine", "masculine"]).optional(),
-  // Nur Hex-Farben — die Werte landen unverändert in einem SVG-Attribut.
+  // Hex colours only — the values land unchanged in an SVG attribute.
   skinTone: z.string().regex(/^#[0-9a-f]{6}$/i).optional(),
   hairColor: z.string().regex(/^#[0-9a-f]{6}$/i).optional(),
 });
@@ -17,7 +17,7 @@ const appearanceSchema = z.object({
 async function requireUserId() {
   const session = await auth();
   const id = session?.user?.id;
-  if (!id) throw new Error("Nicht angemeldet");
+  if (!id) throw new Error("Not signed in");
   return id;
 }
 
@@ -31,8 +31,8 @@ export async function purchase(itemId: string, lang: string) {
   const userId = await requireUserId();
   const result = await buyItem(userId, itemId);
   if (result.ok) {
-    // Direkt anlegen: wer etwas kauft, will es sehen — ein zweiter Klick
-    // dafür wäre reine Schikane.
+    // Wear it straight away: someone who buys something wants to see it — a
+    // second click for that would be pure friction.
     await equipItem(userId, itemId);
   }
   refresh(lang);

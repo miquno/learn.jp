@@ -54,8 +54,8 @@ export function AvatarStudio({ view, items, coins, dict, locale }: Props) {
         className="flex flex-col gap-2 rounded-card border border-surface-border bg-surface-raised p-3"
       >
         <div className="flex justify-center rounded-lg bg-surface-base py-2">
-          {/* Vorschau auf der eigenen Figur statt eines abstrakten Symbols —
-              nur so sieht man, ob ein Teil zum Rest passt. */}
+          {/* Preview on your own character rather than an abstract icon —
+              only that shows whether an item goes with the rest. */}
           <Avatar view={item.preview} size={72} />
         </div>
 
@@ -83,9 +83,9 @@ export function AvatarStudio({ view, items, coins, dict, locale }: Props) {
             disabled={!affordable || pending}
             onClick={() =>
               startTransition(async () => {
-                // Rückgabewert bewusst verworfen: der Knopf ist bereits
-                // gesperrt, wenn das Guthaben nicht reicht, und die Seite
-                // lädt nach dem Kauf ohnehin neu.
+                // Return value deliberately discarded: the button is already
+                // disabled when the balance is too low, and the page reloads
+                // after the purchase anyway.
                 await purchase(item.id, locale);
               })
             }

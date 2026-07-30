@@ -5,9 +5,9 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
 /**
- * Für alle Seiten unterhalb von `(app)`. Liefert den vollständigen Datensatz
- * aus der Datenbank statt der JWT-Claims — die Session enthält absichtlich nur
- * Anzeigedaten und kann veraltet sein.
+ * For every page below `(app)`. Returns the full database record rather than
+ * the JWT claims — the session intentionally holds display data only and can
+ * be stale.
  */
 export async function requireUser(locale: Locale) {
   const session = await auth();

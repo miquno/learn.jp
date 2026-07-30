@@ -13,9 +13,9 @@ type Props = {
 };
 
 export function TopNav({ locale, dict, username, coins }: Props) {
-  // Einträge ohne `href` sind noch nicht gebaut. Sie stehen trotzdem schon
-  // hier, damit die Navigation nicht bei jeder Phase umspringt — als Text
-  // statt Link, damit niemand in einen 404 läuft.
+  // Entries without an `href` aren't built yet. They are listed anyway so the
+  // navigation doesn't shift around every phase — as text rather than a link,
+  // so nobody walks into a 404.
   const items: { label: string; href?: string }[] = [
     { label: dict.nav.dashboard, href: `/${locale}/dashboard` },
     { label: dict.nav.learn, href: `/${locale}/learn/kana` },

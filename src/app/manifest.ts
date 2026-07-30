@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "LearnJP",
     short_name: "LearnJP",
-    description: "Japanisch lernen von null bis JLPT N1",
+    description: "Learn Japanese from zero to JLPT N1",
     start_url: "/",
     display: "standalone",
     background_color: "#1a1c22",

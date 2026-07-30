@@ -11,9 +11,9 @@ export default async function CreditsPage({
 
   const dict = await getDictionary(lang);
 
-  // Die Lizenzen von JMdict, KANJIDIC2, KanjiVG und Tatoeba verlangen
-  // ausdrücklich Namensnennung. Diese Seite ist damit Pflichtteil der App,
-  // nicht Beiwerk — sie darf nicht wegoptimiert werden.
+  // The licences of JMdict, KANJIDIC2, KanjiVG and Tatoeba explicitly require
+  // attribution. This page is therefore a mandatory part of the app, not
+  // decoration — it must not be optimised away.
   const sources = [
     {
       name: "JMdict",
@@ -41,7 +41,7 @@ export default async function CreditsPage({
     },
     {
       name: "Tatoeba",
-      by: "Tatoeba-Projekt und seine Mitwirkenden",
+      by: "The Tatoeba project and its contributors",
       url: "https://tatoeba.org",
       license: "CC BY 2.0 FR",
       licenseUrl: "https://creativecommons.org/licenses/by/2.0/fr/",

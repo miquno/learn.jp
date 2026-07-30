@@ -1,26 +1,26 @@
 #!/usr/bin/env bash
-# Lädt die Rohdaten für die Content-Importer nach data/raw/.
-# Idempotent: bereits vorhandene Dateien werden übersprungen (--continue).
+# Downloads the raw data for the content importers into data/raw.
+# Idempotent: files that already exist are skipped.
 #
-# Alle Quellen sind offen lizenziert, verlangen aber Namensnennung —
-# siehe die Seite /credits.
+# Every source is openly licensed but requires attribution — see the
+# /credits page.
 set -euo pipefail
 
 DEST="$(cd "$(dirname "$0")/../.." && pwd)/data/raw"
 mkdir -p "$DEST"
 
-# KanjiVG veröffentlicht datierte Releases. Version hier bewusst festgenagelt,
-# damit ein Neuaufbau der Datenbank reproduzierbar bleibt.
+# KanjiVG publishes dated releases. The version is pinned here on purpose so
+# rebuilding the database stays reproducible.
 KANJIVG_RELEASE="r20250816"
 KANJIVG_FILE="kanjivg-20250816.xml.gz"
 
 fetch() {
   local url="$1" name="$2"
   if [ -s "$DEST/$name" ]; then
-    printf '  übersprungen (vorhanden): %s\n' "$name"
+    printf '  skipped (already present): %s\n' "$name"
     return
   fi
-  printf '  lade: %s\n' "$name"
+  printf '  downloading: %s\n' "$name"
   curl -fSL --retry 3 --connect-timeout 30 -o "$DEST/$name.part" "$url"
   mv "$DEST/$name.part" "$DEST/$name"
 }
@@ -33,9 +33,9 @@ echo "KanjiVG (CC BY-SA 3.0)"
 fetch "https://github.com/KanjiVG/kanjivg/releases/download/${KANJIVG_RELEASE}/${KANJIVG_FILE}" "kanjivg.xml.gz"
 
 echo "Tatoeba (CC BY 2.0 FR)"
-# Pro Sprache statt Gesamtexport, und die Verknüpfungen paarweise:
-# links.tar.bz2 wäre 142 MB für alle Sprachkombinationen, jpn-deu und
-# jpn-eng zusammen sind unter 2 MB.
+# Per language rather than the combined export, and links per language pair:
+# links.tar.bz2 would be 142 MB covering every language combination, while
+# jpn-deu and jpn-eng together are under 2 MB.
 TB="https://downloads.tatoeba.org/exports/per_language"
 fetch "$TB/jpn/jpn_sentences.tsv.bz2" "jpn_sentences.tsv.bz2"
 fetch "$TB/deu/deu_sentences.tsv.bz2" "deu_sentences.tsv.bz2"
@@ -44,5 +44,5 @@ fetch "$TB/jpn/jpn-deu_links.tsv.bz2" "jpn-deu_links.tsv.bz2"
 fetch "$TB/jpn/jpn-eng_links.tsv.bz2" "jpn-eng_links.tsv.bz2"
 
 echo
-echo "Fertig. Inhalt von data/raw:"
+echo "Done. Contents of data/raw:"
 du -h "$DEST"/* | sort -k2

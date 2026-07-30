@@ -20,8 +20,8 @@ declare module "next-auth" {
   }
 }
 
-// `next-auth/jwt` re-exportiert nur (`export * from "@auth/core/jwt"`) —
-// eine Augmentierung dort läuft ins Leere und `token.role` bliebe `unknown`.
+// `next-auth/jwt` only re-exports (`export * from "@auth/core/jwt"`) — an
+// augmentation there has no effect and `token.role` would stay `unknown`.
 declare module "@auth/core/jwt" {
   interface JWT {
     role?: UserRole;

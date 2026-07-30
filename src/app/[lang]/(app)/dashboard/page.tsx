@@ -136,8 +136,8 @@ export default async function DashboardPage({
           />
 
           <div className="mt-auto flex flex-wrap gap-2 pt-2">
-            {/* Fällige Wiederholungen haben Vorrang vor neuem Stoff — sonst
-                wächst der Rückstand, während man Neues anfängt. */}
+            {/* Due reviews take priority over new material — otherwise the
+                backlog grows while you start new things. */}
             {stats.due > 0 && (
               <Link
                 href={`/${lang}/review`}

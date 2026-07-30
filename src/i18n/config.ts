@@ -9,9 +9,9 @@ export function isLocale(value: string): value is Locale {
 }
 
 /**
- * Wählt anhand des Accept-Language-Headers die passende Sprache.
- * Bewusst ohne Zusatzabhängigkeit: zwei Locales rechtfertigen keinen
- * vollständigen BCP-47-Matcher.
+ * Picks the best language from the Accept-Language header.
+ * Deliberately without a dependency: two locales don't justify a full
+ * BCP-47 matcher.
  */
 export function matchLocale(acceptLanguage: string | null): Locale {
   if (!acceptLanguage) return defaultLocale;

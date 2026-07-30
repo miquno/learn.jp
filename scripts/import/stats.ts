@@ -1,11 +1,11 @@
 /**
- * Abdeckungs- und Qualitätsbericht über die importierten Inhalte.
+ * Coverage and quality report for the imported content.
  *
  *   npm run import:stats
  *
- * Zweck: nach jedem Import zeigen, wo Lücken sind — vor allem die deutsche
- * Abdeckung, weil sie je nach Quelle stark schwankt und in einem Fall
- * (Kanji-Bedeutungen) komplett fehlt.
+ * Purpose: after every import, show where the gaps are — above all German
+ * coverage, which varies a lot by source and in one case (kanji meanings) is
+ * missing entirely.
  */
 import { db } from "./lib/db";
 
@@ -19,8 +19,8 @@ function bar(part: number, total: number, width = 24) {
 
 function line(label: string, part: number, total: number) {
   console.log(
-    `  ${label.padEnd(30)} ${part.toLocaleString("de-DE").padStart(9)} / ${total
-      .toLocaleString("de-DE")
+    `  ${label.padEnd(30)} ${part.toLocaleString("en-GB").padStart(9)} / ${total
+      .toLocaleString("en-GB")
       .padStart(9)}  ${bar(part, total)}`,
   );
 }
@@ -33,43 +33,43 @@ async function main() {
     db.sentence.count(),
   ]);
 
-  console.log("\nBestand");
-  console.log(`  Kana                ${kana.toLocaleString("de-DE")}`);
-  console.log(`  Wörter              ${words.toLocaleString("de-DE")}`);
-  console.log(`  Kanji               ${kanji.toLocaleString("de-DE")}`);
-  console.log(`  Beispielsätze       ${sentences.toLocaleString("de-DE")}`);
+  console.log("\nInventory");
+  console.log(`  Kana                ${kana.toLocaleString("en-GB")}`);
+  console.log(`  Words               ${words.toLocaleString("en-GB")}`);
+  console.log(`  Kanji               ${kanji.toLocaleString("en-GB")}`);
+  console.log(`  Example sentences   ${sentences.toLocaleString("en-GB")}`);
 
-  // Für die JSON-Spalten direkt SQL: Prismas JSON-Filter verlangen einen
-  // Skalar-Filter am Pfad und drücken „Schlüssel ist vorhanden und nicht
-  // leer" nur umständlich aus.
+  // Raw SQL for the JSON columns: Prisma's JSON filters require a scalar
+  // filter at the path and express "key present and non-empty" only
+  // awkwardly.
   const count = async (sql: string) => {
     const rows = await db.$queryRawUnsafe<{ n: bigint }[]>(sql);
     return Number(rows[0].n);
   };
 
-  console.log("\nDeutsche Abdeckung");
+  console.log("\nGerman coverage");
   const [wordsDe, kanjiDe, sentencesDe] = await Promise.all([
     count(`select count(*) as n from words where jsonb_array_length(meanings->'de') > 0`),
     count(`select count(*) as n from kanji where jsonb_array_length(meanings->'de') > 0`),
     count(`select count(*) as n from sentences where translations ? 'de'`),
   ]);
-  line("Wörter mit Bedeutung", wordsDe, words);
-  line("Kanji mit Bedeutung", kanjiDe, kanji);
-  line("Sätze mit Übersetzung", sentencesDe, sentences);
+  line("Words with a meaning", wordsDe, words);
+  line("Kanji with a meaning", kanjiDe, kanji);
+  line("Sentences with translation", sentencesDe, sentences);
 
-  console.log("\nVollständigkeit");
+  console.log("\nCompleteness");
   const [strokes, jouyou, wordsJlpt, kanjiJlpt] = await Promise.all([
     count(`select count(*) as n from kanji where "strokeOrder" is not null`),
     db.kanji.count({ where: { grade: { not: null } } }),
     db.word.count({ where: { jlptLevel: { not: null } } }),
     db.kanji.count({ where: { jlptLevel: { not: null } } }),
   ]);
-  line("Kanji mit Strichfolge", strokes, kanji);
-  line("Kanji mit Schuljahr (Jōyō)", jouyou, kanji);
-  line("Wörter mit JLPT-Stufe", wordsJlpt, words);
-  line("Kanji mit JLPT-Stufe", kanjiJlpt, kanji);
+  line("Kanji with stroke order", strokes, kanji);
+  line("Kanji with a school grade", jouyou, kanji);
+  line("Words with a JLPT level", wordsJlpt, words);
+  line("Kanji with a JLPT level", kanjiJlpt, kanji);
 
-  console.log("\nHäufigste Wörter je Wortklasse");
+  console.log("\nMost common words per word class");
   for (const wordClass of ["godan", "ichidan", "i_adjective", "na_adjective"] as const) {
     const sample = await db.word.findMany({
       where: { wordClass, frequency: { not: null } },
@@ -89,16 +89,16 @@ async function main() {
   const gaps: string[] = [];
   if (kanjiDe === 0) {
     gaps.push(
-      "Kanji-Bedeutungen auf Deutsch fehlen vollständig — KANJIDIC2 liefert kein Deutsch.",
+      "German kanji meanings are missing entirely — KANJIDIC2 ships no German.",
     );
   }
   if (wordsJlpt === 0) {
     gaps.push(
-      "Kein Wort trägt eine JLPT-Stufe — JMdict enthält keine, die Zuordnung braucht einen eigenen Schritt.",
+      "No word carries a JLPT level — JMdict contains none, assignment needs its own step.",
     );
   }
   if (gaps.length > 0) {
-    console.log("\nOffene Lücken");
+    console.log("\nOpen gaps");
     for (const gap of gaps) console.log(`  · ${gap}`);
   }
 

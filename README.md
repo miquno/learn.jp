@@ -1,66 +1,87 @@
 # LearnJP
 
-Japanisch lernen von null bis JLPT N1 — durchgehender Lernpfad, Wiederholung
-per Spaced Repetition, Übungsspiele und ein Avatar, den man sich erarbeitet.
+Learn Japanese from zero to JLPT N1 — one continuous path, spaced-repetition
+reviews, practice games, and a character you earn piece by piece.
 
-> Der Produktname ist noch vorläufig. Er steckt an genau drei Stellen:
-> `src/i18n/dictionaries/*.json` (`meta.appName`), `src/app/manifest.ts` und
-> dieser Datei.
+> The product name is still provisional. It lives in exactly three places:
+> `src/i18n/dictionaries/*.json` (`meta.appName`), `src/app/manifest.ts` and
+> this file.
 
 ## Stack
 
 - **Next.js 16** (App Router, Server Components, Server Actions)
 - **React 19**, **TypeScript**, **Tailwind CSS 4**
 - **Prisma 7** + PostgreSQL
-- **NextAuth 5** (Credentials, JWT-Session)
-- Stripe (Abo), Resend (E-Mail), Sentry (Fehler), Anthropic SDK (KI-Korrektur)
+- **NextAuth 5** (credentials, JWT sessions)
+- **ts-fsrs** for review scheduling
+- Stripe (subscription), Resend (email), Sentry (errors), Anthropic SDK (AI feedback)
 
-Wichtig: Diese Next.js-Version weicht an mehreren Stellen von älteren ab.
-Vor Änderungen die passende Seite unter `node_modules/next/dist/docs/` lesen —
-siehe [AGENTS.md](AGENTS.md). Konkret bereits relevant:
+Important: this version of Next.js differs from older ones in several places.
+Read the relevant page under `node_modules/next/dist/docs/` before making
+changes — see [AGENTS.md](AGENTS.md). Already relevant here:
 
-- Middleware heißt **Proxy** (`src/proxy.ts`)
-- `params` in Pages und Layouts ist ein Promise
-- `PageProps<"/pfad">` / `LayoutProps<"/pfad">` sind globale Typ-Helfer, die
-  Next erst beim ersten Dev-Lauf erzeugt
+- Middleware is now called **Proxy** (`src/proxy.ts`)
+- `params` in pages and layouts is a Promise
+- `PageProps<"/path">` / `LayoutProps<"/path">` are global type helpers that
+  Next generates only on the first dev run
 
-## Entwicklung
+## Development
 
 ```bash
-docker compose up -d          # PostgreSQL auf Port 5432
+docker compose up -d          # PostgreSQL on port 5432
 npm install
-cp .env.example .env          # und AUTH_SECRET setzen
-npx prisma migrate dev        # Schema anlegen
+cp .env.example .env          # then set AUTH_SECRET
+npx prisma migrate dev        # create the schema
+npm run download              # fetch the raw content data (~70 MB)
+npm run import                # import kana, words, kanji, sentences, shop items
 npm run dev                   # http://localhost:3000
 ```
 
-Prüfen vor dem Commit:
+Check before committing:
 
 ```bash
 npx tsc --noEmit && npx eslint .
 ```
 
-## Aufbau
+Note: the Prisma client is cached on `globalThis` in development so hot reload
+doesn't pile up connection pools. After `prisma generate` the running dev
+server keeps the old instance and new tables read as `undefined` — restart it.
+
+## Layout
 
 ```
 src/
-  app/[lang]/(marketing)/   Landing, Preise, Rechtstexte
-  app/[lang]/(auth)/        Login, Registrierung
-  app/[lang]/(app)/         Alles hinter der Anmeldung
-  app/api/                  Nur wo REST nötig ist (Auth-Handler, Stripe-Webhook)
-  i18n/                     Wörterbücher de/en + Loader
-  lib/                      Datenbank, Auth, Fachlogik
-  components/               UI-Bausteine
-  proxy.ts                  Sprachpräfix-Weiterleitung
-prisma/                     Schema und Migrationen
+  app/[lang]/(marketing)/   Landing, pricing, legal, credits
+  app/[lang]/(auth)/        Sign-in, registration
+  app/[lang]/(app)/         Everything behind the login
+  app/api/                  Only where REST is required (auth handler, Stripe webhook)
+  i18n/                     Dictionaries de/en + loader
+  lib/srs/                  FSRS scheduler, review queue, statistics
+  lib/avatar/               Pixel artwork, palettes, outfit
+  lib/                      Database, auth
+  components/               UI building blocks
+  proxy.ts                  Locale-prefix redirect
+prisma/                     Schema and migrations
+scripts/import/             Content importers
 ```
 
-## Sprachen
+## Content
 
-Jede Seiten-URL trägt ein Sprachpräfix (`/de/...`, `/en/...`). Ohne Präfix
-leitet `src/proxy.ts` anhand von Cookie oder `Accept-Language` weiter.
+Learning content comes from open data (JMdict, KANJIDIC2, KanjiVG, Tatoeba)
+and is imported by `scripts/import/`. All four sources require attribution —
+the `/credits` page is a mandatory part of the app, not decoration.
 
-Deutsch ist die Referenzsprache: `src/i18n/dictionaries/de.json` bestimmt die
-Schlüsselstruktur, jede andere Sprache muss sie vollständig bedienen —
-fehlt ein Schlüssel, schlägt der Typecheck fehl statt zur Laufzeit ein leeres
-Label zu rendern.
+`npm run import:stats` reports inventory, German coverage and completeness,
+and names the known gaps.
+
+## Languages
+
+Every page URL carries a locale prefix (`/de/...`, `/en/...`). Without one,
+`src/proxy.ts` redirects based on a cookie or `Accept-Language`.
+
+German is the reference language: `src/i18n/dictionaries/de.json` defines the
+key structure and every other language must cover it fully — a missing key
+fails the type check instead of rendering an empty label at runtime.
+
+Code, comments and commit messages are English; the UI ships in both German
+and English.

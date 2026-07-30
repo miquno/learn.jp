@@ -3,15 +3,15 @@ import "server-only";
 import type { SrsItemType } from "@/generated/prisma/enums";
 import { db } from "@/lib/db";
 
-/** Ein Element, wie es in Lern- und Wiederholungssitzungen gezeigt wird. */
+/** One item as shown in a lesson or review session. */
 export type ReviewItem = {
   cardId: string;
   itemType: SrsItemType;
-  /** Was gefragt wird — das Zeichen, das Wort. */
+  /** What is being asked — the character, the word. */
   prompt: string;
-  /** Erwartete Antwort in Romaji (Kana) bzw. Lesung (Wort). */
+  /** Expected answer in romaji (kana) or reading (word). */
   reading: string;
-  /** Bedeutung in der Sprache des Nutzers, wo vorhanden. */
+  /** Meaning in the user's language, where available. */
   meaning: string | null;
   isNew: boolean;
 };
@@ -21,16 +21,16 @@ type Meanings = { de?: string[]; en?: string[] };
 function pickMeaning(meanings: unknown, locale: "de" | "en"): string | null {
   const value = meanings as Meanings | null;
   if (!value) return null;
-  // Fällt auf Englisch zurück: bei Kanji fehlt Deutsch komplett, bei Wörtern
-  // in 3,6 % der Fälle. Ein leeres Feld wäre schlechter als die andere Sprache.
+  // Falls back to English: German is missing entirely for kanji, and for 3.6%
+  // of words. An empty field would be worse than the other language.
   const list = value[locale]?.length ? value[locale] : value.en;
   return list?.[0] ?? null;
 }
 
 /**
- * Fällige Karten, älteste zuerst. Es gibt bewusst kein Tageslimit für
- * Wiederholungen — wer eine Karte fällig hat, hat sie fällig; ein Deckel
- * würde den Rückstand nur in die Zukunft verschieben und dort vergrößern.
+ * Due cards, oldest first. There is deliberately no daily cap on reviews — if
+ * a card is due, it is due; a cap would only push the backlog into the future
+ * and grow it there.
  */
 export async function getDueCards(
   userId: string,
@@ -75,8 +75,8 @@ export async function getDueCards(
         isNew: card.state === "new",
       }];
     }
-    // Verwaiste Karte — kann nur auftreten, wenn Inhalte gelöscht wurden,
-    // bevor der Fremdschlüssel-Cascade griff.
+    // Orphaned card — only possible if content was deleted before the foreign
+    // key cascade took effect.
     return [];
   });
 }
@@ -88,10 +88,10 @@ export async function countDue(userId: string) {
 }
 
 /**
- * Die nächsten noch nicht begonnenen Kana in Lernreihenfolge.
+ * The next kana not yet started, in learning order.
  *
- * Erst die vollständige Hiragana-Tafel, dann Katakana — gemischt zu lernen
- * ist der häufigste Grund, warum Anfänger beide Schriften verwechseln.
+ * The full hiragana table first, then katakana — learning both mixed is the
+ * most common reason beginners keep confusing the two scripts.
  */
 export async function getNextKana(userId: string, limit: number) {
   const started = await db.srsCard.findMany({
@@ -109,7 +109,7 @@ export async function getNextKana(userId: string, limit: number) {
   });
 }
 
-/** Wie weit die beiden Silbenschriften jeweils gelernt sind. */
+/** How far each of the two syllabaries has been learned. */
 export async function getKanaProgress(userId: string) {
   const [totals, learned] = await Promise.all([
     db.kana.groupBy({ by: ["script"], _count: true }),
@@ -122,7 +122,7 @@ export async function getKanaProgress(userId: string) {
 
   const total = totals.reduce((sum, row) => sum + row._count, 0);
   const started = learned.reduce((sum, row) => sum + row._count, 0);
-  // "Gelernt" heißt: die Karte hat die Lernphase verlassen.
+  // "Learned" means the card has left the learning phase.
   const known = learned
     .filter((row) => row.state === "review")
     .reduce((sum, row) => sum + row._count, 0);

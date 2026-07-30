@@ -1,21 +1,20 @@
 /**
- * Die Pixelgrafiken der Figur.
+ * The pixel artwork for the character.
  *
- * Jedes Teil ist ein Zeichenraster: ein Zeichen pro Pixel, `.` bedeutet
- * durchsichtig. Gezeichnet wird daraus SVG — dadurch bleibt die Figur in
- * jeder Größe scharf, lässt sich umfärben und wiegt ein paar Kilobyte statt
- * Dutzender Bilddateien.
+ * Each part is a character grid: one character per pixel, `.` means
+ * transparent. SVG is drawn from it — that keeps the character crisp at any
+ * size, allows recolouring, and weighs a few kilobytes instead of dozens of
+ * image files.
  *
- * Alles hier ist eigens gezeichnet. Fremde Sprite-Sammlungen sind bewusst
- * nicht verwendet — ihre Lizenzen reichen von "Namensnennung" bis "nur unter
- * gleicher Lizenz weitergeben", und beides will man nicht in einem Shop
- * haben, mit dem Geld verdient wird.
+ * Everything here is drawn from scratch. Third-party sprite collections are
+ * deliberately not used — their licences range from "attribution required" to
+ * "share alike only", and neither belongs in a shop that makes money.
  */
 
 export const GRID_WIDTH = 20;
 export const GRID_HEIGHT = 28;
 
-/** Farbrollen. Haut und Haare kommen aus den Einstellungen des Nutzers. */
+/** Colour roles. Skin and hair come from the user's settings. */
 export type ColorRole =
   | "skin"
   | "skinShade"
@@ -28,9 +27,9 @@ export type ColorRole =
   | "accent";
 
 export type Part = {
-  /** Ab welcher Zeile das Raster gezeichnet wird. */
+  /** The row at which the grid starts being drawn. */
   offsetY: number;
-  /** Zeichen → Farbrolle. */
+  /** Character → colour role. */
   legend: Record<string, ColorRole>;
   rows: string[];
 };
@@ -38,7 +37,7 @@ export type Part = {
 const SKIN = { S: "skin", O: "skinShade" } as const;
 const HAIR = { H: "hair", h: "hairShade" } as const;
 
-// --- Körper ---------------------------------------------------------------
+// --- Body -----------------------------------------------------------------
 
 const FACE = {
   ...SKIN,
@@ -117,7 +116,7 @@ export const BODIES: Record<"feminine" | "masculine", Part> = {
   },
 };
 
-// --- Haare ----------------------------------------------------------------
+// --- Hair -----------------------------------------------------------------
 
 export const HAIR_PARTS: Record<string, Part> = {
   hair_short: {
@@ -169,7 +168,7 @@ export const HAIR_PARTS: Record<string, Part> = {
   },
 };
 
-// --- Oberteile ------------------------------------------------------------
+// --- Tops -----------------------------------------------------------------
 
 const CLOTH = { C: "primary", c: "secondary" } as const;
 
@@ -213,7 +212,7 @@ export const TOP_PARTS: Record<string, Part> = {
   },
 };
 
-// --- Unterteile -----------------------------------------------------------
+// --- Bottoms --------------------------------------------------------------
 
 const BOTTOM = { D: "primary", d: "secondary" } as const;
 
@@ -241,7 +240,7 @@ export const BOTTOM_PARTS: Record<string, Part> = {
   },
 };
 
-// --- Schuhe ---------------------------------------------------------------
+// --- Shoes ----------------------------------------------------------------
 
 const SHOE = { F: "primary", f: "secondary" } as const;
 
@@ -262,7 +261,7 @@ export const SHOE_PARTS: Record<string, Part> = {
   },
 };
 
-// --- Zubehör --------------------------------------------------------------
+// --- Accessories ----------------------------------------------------------
 
 const ACCENT = { A: "accent", a: "primary" } as const;
 
@@ -283,7 +282,7 @@ export const ACCESSORY_PARTS: Record<string, Part> = {
   },
 };
 
-// --- Hintergründe ---------------------------------------------------------
+// --- Backgrounds ----------------------------------------------------------
 
 const SCENE = { B: "primary", b: "secondary", A: "accent" } as const;
 
@@ -340,8 +339,8 @@ export const ALL_PARTS: Record<string, Part> = {
   ...BACKGROUND_PARTS,
 };
 
-// Falsch abgezählte Zeilen sind der wahrscheinlichste Fehler beim Zeichnen im
-// Editor und im gerenderten Bild kaum zu erkennen — deshalb hier hart prüfen.
+// A miscounted row is the most likely mistake when drawing in an editor and is
+// barely visible in the rendered image — so it is checked hard here.
 for (const [key, part] of Object.entries({
   ...ALL_PARTS,
   base_feminine: BODIES.feminine,
@@ -350,7 +349,7 @@ for (const [key, part] of Object.entries({
   for (const [index, row] of part.rows.entries()) {
     if (row.length !== GRID_WIDTH) {
       throw new Error(
-        `Avatar-Teil "${key}": Zeile ${index} ist ${row.length} Pixel breit, erwartet ${GRID_WIDTH}.`,
+        `Avatar part "${key}": row ${index} is ${row.length} pixels wide, expected ${GRID_WIDTH}.`,
       );
     }
   }

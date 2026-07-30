@@ -1,18 +1,18 @@
 /**
  * JMdict → Word
  *
- * Zwei Eigenheiten des Formats bestimmen den Aufbau:
+ * Two quirks of the format shape this code:
  *
- * 1. Deutsche Bedeutungen stehen in *eigenen* <sense>-Blöcken mit
- *    xml:lang="ger". Englische Glossen tragen gar kein Sprachattribut.
- *    Man kann also nicht einfach Sinn für Sinn zusammenlesen.
- * 2. Wortarten (<pos>) stehen nur an den englischen Sinnen und als
- *    DTD-Entität (&n;, &v5r; …). Die Entität ist der Code selbst — bequemer
- *    als der aufgelöste Klartext.
+ * 1. German meanings live in their *own* <sense> blocks marked
+ *    xml:lang="ger". English glosses carry no language attribute at all, so
+ *    the senses cannot simply be read in parallel.
+ * 2. Parts of speech (<pos>) appear only on the English senses, and as DTD
+ *    entities (&n;, &v5r; …). The entity is the code itself — handier than
+ *    the resolved plain text.
  *
- * Von 218.173 Einträgen tragen 30.148 eine Häufigkeitsmarkierung; davon
- * haben 29.052 auch deutsche Bedeutungen. Genau dieser Kern wird importiert —
- * der Rest ist Fachvokabular und Namensmaterial, das niemand am Anfang lernt.
+ * Of 218,173 entries, 30,148 carry a frequency marker; 29,052 of those also
+ * have German meanings. Exactly that core is imported — the rest is technical
+ * vocabulary and name material nobody learns early on.
  */
 import type { WordClass } from "../../src/generated/prisma/enums";
 
@@ -20,7 +20,7 @@ import { db } from "./lib/db";
 import { toRomaji } from "./lib/romaji";
 import { all, decodeEntities, first, openGzip, progress, streamElements } from "./lib/source";
 
-/** Nur Einträge mit Häufigkeitsmarkierung — siehe Kopfkommentar. */
+/** Only entries with a frequency marker — see the header comment. */
 const REQUIRE_FREQUENCY = true;
 
 type Parsed = {
@@ -35,7 +35,7 @@ type Parsed = {
   isCommon: boolean;
 };
 
-/** Sinn-Blöcke mit ihrem Sprachcode. Ohne Attribut bedeutet Englisch. */
+/** Sense blocks with their language code. No attribute means English. */
 function senses(xml: string): { lang: string; body: string }[] {
   const out: { lang: string; body: string }[] = [];
   const re = /<sense>([\s\S]*?)<\/sense>/g;
@@ -49,9 +49,9 @@ function senses(xml: string): { lang: string; body: string }[] {
 }
 
 /**
- * Häufigkeit aus den Prioritätscodes. `nfXX` ist der feinste Wert: XX ist die
- * Nummer eines 500er-Blocks der Häufigkeitsliste, nf01 also die häufigsten
- * 500 Wörter. Ohne nf-Code werden die groben Marker angenähert.
+ * Frequency from the priority codes. `nfXX` is the finest signal: XX is the
+ * number of a 500-word block in the frequency list, so nf01 is the 500 most
+ * common words. Without an nf code the coarse markers are approximated.
  */
 function frequencyFrom(codes: string[]): number | null {
   const nf = codes.map((c) => /^nf(\d+)$/.exec(c)?.[1]).find(Boolean);
@@ -63,7 +63,7 @@ function frequencyFrom(codes: string[]): number | null {
   return codes.length > 0 ? 24000 : null;
 }
 
-/** Konjugationsklasse aus den Wortart-Codes. */
+/** Conjugation class from the part-of-speech codes. */
 function wordClassFrom(pos: string[]): WordClass {
   if (pos.some((p) => p.startsWith("v5"))) return "godan";
   if (pos.some((p) => p === "v1" || p === "v1-s")) return "ichidan";
@@ -99,14 +99,13 @@ function parseEntry(xml: string): Parsed | null {
   const de = glossesOf("ger");
   if (en.length === 0 && de.length === 0) return null;
 
-  // Bekannte Schwäche: die deutschen Sinn-Blöcke stehen nicht in derselben
-  // Reihenfolge wie die englischen und tragen keine Wortart-Angaben. Bei
-  // 生きる ist die erste deutsche Glosse deshalb ein Filmtitel statt "leben".
-  // Sauber lösen lässt sich das nur mit einem Kurationsschritt über den
-  // häufigsten Wortschatz — die englische Bedeutung ist bis dahin die
-  // verlässlichere und wird im Zweifel mit angezeigt.
+  // Known weakness: the German sense blocks are not in the same order as the
+  // English ones and carry no part-of-speech data. For 生きる the first German
+  // gloss is therefore a film title instead of "to live". This can only be
+  // fixed properly by a curation pass over the most common vocabulary — until
+  // then the English meaning is the more reliable one.
 
-  // <pos>&n;</pos> — die Entität selbst ist der Wortart-Code.
+  // <pos>&n;</pos> — the entity itself is the part-of-speech code.
   const partOfSpeech = [
     ...new Set(
       blocks
@@ -132,14 +131,14 @@ function parseEntry(xml: string): Parsed | null {
 }
 
 export async function importJmdict() {
-  const bar = progress("Wörter");
+  const bar = progress("Words");
   let batch: Parsed[] = [];
   let skipped = 0;
 
   const flush = async () => {
     if (batch.length === 0) return;
-    // createMany + skipDuplicates statt einzelner upserts: bei 29.000
-    // Datensätzen ist der Unterschied Minuten gegen Sekunden.
+    // createMany + skipDuplicates rather than individual upserts: across
+    // 30,000 records that is the difference between minutes and seconds.
     await db.word.createMany({ data: batch, skipDuplicates: true });
     bar.tick(batch.length);
     batch = [];
@@ -161,8 +160,10 @@ export async function importJmdict() {
     where: { NOT: { meanings: { path: ["de"], equals: [] } } },
   });
   console.log(
-    `    davon mit deutscher Bedeutung: ${withGerman.toLocaleString("de-DE")}`,
+    `    with a German meaning: ${withGerman.toLocaleString("en-GB")}`,
   );
-  console.log(`    übersprungen (ohne Häufigkeit/Bedeutung): ${skipped.toLocaleString("de-DE")}`);
+  console.log(
+    `    skipped (no frequency or meaning): ${skipped.toLocaleString("en-GB")}`,
+  );
   return total;
 }

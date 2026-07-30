@@ -1,10 +1,10 @@
 /**
- * Kana kommen nicht aus einem Download — es sind 214 feste Zeichen, und die
- * Lernreihenfolge ist didaktisch gesetzt, nicht aus Daten ableitbar.
+ * Kana don't come from a download — they are a fixed set of characters, and
+ * the learning order is a teaching decision, not derivable from data.
  *
- * Reihenfolge: erst die Grundtafel (あ-Reihe bis ん), dann Dakuten und
- * Handakuten, zuletzt die Kombinationen. Genau so wird sie im Lernpfad
- * abgearbeitet.
+ * Order: the base table first (あ row through ん), then dakuten and
+ * handakuten, and combinations last. That is exactly how the learning path
+ * works through them.
  */
 import type { KanaType } from "../../src/generated/prisma/enums";
 
@@ -45,11 +45,11 @@ const BASIC: Row[] = [
 ];
 
 /**
- * Beim Lernen der Kana-Tafel abweichende Umschrift.
+ * Romanisation that differs when learning the kana table.
  *
- * を wird als Wort-Partikel "o" gesprochen, in der Kana-Tafel aber überall
- * als "wo" gelehrt — sonst stünden あ und を beide unter "o" und die Abfrage
- * wäre nicht eindeutig beantwortbar.
+ * を is pronounced "o" as a particle, but in the kana table it is taught as
+ * "wo" everywhere — otherwise あ and を would both sit under "o" and the
+ * prompt would have no unambiguous answer.
  */
 const LESSON_ROMAJI: Record<string, string> = {
   を: "wo",

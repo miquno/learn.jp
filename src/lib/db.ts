@@ -2,8 +2,9 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 import { PrismaClient } from "@/generated/prisma/client";
 
-// In der Entwicklung überlebt der Client den Hot Reload, damit nicht bei
-// jedem Speichern ein neuer Verbindungspool aufgemacht wird.
+// In development the client survives hot reload, so a new connection pool
+// isn't opened on every save. Note: after `prisma generate` the running dev
+// server keeps the old instance — restart it, or new tables read as undefined.
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
@@ -11,7 +12,7 @@ const globalForPrisma = globalThis as unknown as {
 function createClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    throw new Error("DATABASE_URL ist nicht gesetzt.");
+    throw new Error("DATABASE_URL is not set.");
   }
 
   return new PrismaClient({

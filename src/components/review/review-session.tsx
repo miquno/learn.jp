@@ -13,15 +13,15 @@ type Props = { items: ReviewItem[]; dict: Dictionary; locale: Locale };
 
 type Phase = "question" | "revealed";
 
-/** Vergleicht Eingabe und erwartete Lesung nachsichtig. */
+/** Compares input and expected reading leniently. */
 function matches(input: string, expected: string) {
   const normalise = (value: string) =>
     value
       .trim()
       .toLowerCase()
-      // Lange Vokale werden mal als "ou", mal als "ō", mal als "oo"
-      // geschrieben. Wer し als "shi" erkennt, soll nicht an der Umschrift
-      // scheitern — geprüft wird das Zeichen, nicht die Rechtschreibung.
+      // Long vowels get written as "ou", "ō" or "oo" depending on the
+      // source. Recognising し as "shi" shouldn't fail on transliteration —
+      // what is tested is the character, not the spelling.
       .replace(/[ōô]/g, "o")
       .replace(/[ūû]/g, "u")
       .replace(/\s+/g, "");
@@ -42,13 +42,13 @@ export function ReviewSession({ items, dict, locale }: Props) {
   const item = items[index];
   const finished = index >= items.length;
 
-  // Die Uhr läuft ab dem Moment, in dem die Karte tatsächlich sichtbar ist.
-  // Im Effekt statt im Render-Pfad, weil die Uhrzeit keine reine Funktion des
-  // Zustands ist und React den Render sonst nicht wiederholen dürfte.
+  // The clock starts the moment the card is actually visible. In an effect
+  // rather than the render path, because the time of day is not a pure
+  // function of state and React would otherwise not be free to re-render.
   useEffect(() => {
-    // performance.now() statt Date.now(), weil `event.timeStamp` in den
-    // Ereignissen unten auf derselben Uhr liegt — Date.now() hätte einen
-    // anderen Nullpunkt und die Differenz wäre Unsinn.
+    // performance.now() rather than Date.now(), because `event.timeStamp` in
+    // the handlers below sits on the same clock — Date.now() has a different
+    // origin and the difference would be nonsense.
     shownAt.current = performance.now();
     inputRef.current?.focus();
   }, [index]);
@@ -66,15 +66,15 @@ export function ReviewSession({ items, dict, locale }: Props) {
   ) {
     const duration = at - shownAt.current;
     const cardId = item.cardId;
-    // Die Antwort wandert im Hintergrund zum Server. Die nächste Karte
-    // erscheint sofort — Wiederholen soll sich nicht wie Warten anfühlen.
+    // The answer travels to the server in the background. The next card
+    // appears immediately — reviewing shouldn't feel like waiting.
     startTransition(async () => {
       await submitAnswer(cardId, rating, duration);
     });
     if (rating !== "again") setCorrectCount((count) => count + 1);
   }
 
-  /** `at` kommt aus dem Ereignis — der Zeitstempel ist damit kein Seiteneffekt. */
+  /** `at` comes from the event, so the timestamp is not a side effect. */
   function checkTyped(at: number) {
     if (phase === "revealed") {
       advance();

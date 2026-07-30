@@ -1,8 +1,8 @@
 /**
- * Kana → Romaji in Hepburn-Schreibung.
+ * Kana → romaji in Hepburn romanisation.
  *
- * Hepburn statt Kunrei, weil Lernende diese Umschrift in Wörterbüchern und
- * auf Straßenschildern wiederfinden (し = "shi", nicht "si").
+ * Hepburn rather than Kunrei, because learners find this romanisation in
+ * dictionaries and on street signs (し = "shi", not "si").
  */
 
 const DIGRAPHS: Record<string, string> = {
@@ -41,7 +41,7 @@ const SINGLES: Record<string, string> = {
   "、": ", ", "。": ". ", "　": " ",
 };
 
-/** Katakana auf Hiragana abbilden — die Umschrift ist für beide gleich. */
+/** Map katakana onto hiragana — the romanisation is the same for both. */
 export function katakanaToHiragana(input: string): string {
   return input.replace(/[ァ-ヶ]/g, (char) =>
     String.fromCharCode(char.charCodeAt(0) - 0x60),
@@ -63,7 +63,7 @@ export function toRomaji(input: string): string {
 
     const char = kana[i];
 
-    // Kleines っ verdoppelt den folgenden Konsonanten (きって → kitte).
+    // Small っ doubles the following consonant (きって → kitte).
     if (char === "っ") {
       const nextPair = kana.slice(i + 1, i + 3);
       const next = DIGRAPHS[nextPair] ?? SINGLES[kana[i + 1]] ?? "";
@@ -73,7 +73,7 @@ export function toRomaji(input: string): string {
     }
 
     if (char === "ー" && out.length > 0) {
-      // Längungsstrich: den letzten Vokal verdoppeln.
+      // Prolongation mark: double the previous vowel.
       out += out[out.length - 1];
       i += 1;
       continue;

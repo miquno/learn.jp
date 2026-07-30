@@ -48,8 +48,8 @@ export async function login(
       redirectTo: `/${locale}/dashboard`,
     });
   } catch (error) {
-    // signIn signalisiert Erfolg über einen Redirect-Fehler — der muss weiter
-    // nach oben durch, sonst landet niemand jemals im Dashboard.
+    // signIn signals success by throwing a redirect — that has to propagate,
+    // or nobody ever lands on the dashboard.
     if (error instanceof AuthError) return { error: "invalid" };
     throw error;
   }
@@ -84,8 +84,8 @@ export async function register(
         username,
         passwordHash: await bcrypt.hash(password, 12),
         locale,
-        // E-Mail-Bestätigung folgt; bis dahin ist das Konto sofort nutzbar,
-        // damit der Einstieg nicht am Postfach hängt.
+        // Email verification comes later; until then the account works right
+        // away, so the first run doesn't hinge on an inbox.
         status: "active",
       },
     });

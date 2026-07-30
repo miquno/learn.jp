@@ -6,7 +6,7 @@ import { getDictionary } from "@/i18n/get-dictionary";
 import { requireUser } from "@/lib/auth/guards";
 import { getNextKana } from "@/lib/srs/queue";
 
-/** Wie viele neue Zeichen eine Lektion umfasst. */
+/** How many new characters one lesson covers. */
 const LESSON_SIZE = 5;
 
 export default async function KanaLessonPage({

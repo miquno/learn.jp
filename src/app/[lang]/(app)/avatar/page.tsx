@@ -48,8 +48,8 @@ export default async function AvatarPage({
       price: item.price,
       owned: ownedIds.has(item.id),
       equipped: equippedKeys.has(item.assetKey),
-      // Vorschau auf der eigenen Figur: das Teil ersetzt die aktuelle Ebene
-      // desselben Platzes, alles andere bleibt stehen.
+      // Preview on your own character: the item replaces the current layer of
+      // the same slot, everything else stays put.
       preview: {
         ...view,
         layers: [

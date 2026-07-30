@@ -1,13 +1,13 @@
 /**
  * Tatoeba → Sentence
  *
- * Format: `id \t sprache \t text` für Sätze, `jpn_id \t anderer_id` für
- * Verknüpfungen. Es gibt 248.821 japanische Sätze, davon 58.352 mit
- * deutscher und 280.610 Verknüpfungen mit englischer Übersetzung (mehrere
- * Übersetzungen je Satz sind möglich — genommen wird die erste).
+ * Format: `id \t language \t text` for sentences, `jpn_id \t other_id` for
+ * links. There are 248,821 Japanese sentences, 58,352 of them with a German
+ * link and 280,610 links to English translations (several translations per
+ * sentence are possible — the first one is taken).
  *
- * Importiert werden nur Sätze mit mindestens einer Übersetzung: ein
- * japanischer Satz ohne Bedeutung nützt Lernenden nichts.
+ * Only sentences with at least one translation are imported: a Japanese
+ * sentence with no meaning attached is useless to a learner.
  */
 import { createInterface } from "node:readline";
 
@@ -24,7 +24,7 @@ async function* lines(file: string) {
   for await (const line of rl) yield line;
 }
 
-/** jpn-ID → ID der Übersetzung. Erste gewinnt. */
+/** jpn id → id of the translation. First one wins. */
 async function readLinks(file: string): Promise<Map<number, number>> {
   const map = new Map<number, number>();
   for await (const line of lines(file)) {
@@ -36,7 +36,7 @@ async function readLinks(file: string): Promise<Map<number, number>> {
   return map;
 }
 
-/** Texte der benötigten IDs — der Rest wird gar nicht erst behalten. */
+/** Texts for the ids we need — the rest is never kept at all. */
 async function readSentences(
   file: string,
   wanted: Set<number>,
@@ -52,19 +52,19 @@ async function readSentences(
 }
 
 export async function importTatoeba() {
-  process.stdout.write("  Verknüpfungen lesen …\n");
+  process.stdout.write("  reading links …\n");
   const [toGerman, toEnglish] = await Promise.all([
     readLinks("jpn-deu_links.tsv.bz2"),
     readLinks("jpn-eng_links.tsv.bz2"),
   ]);
 
-  process.stdout.write("  Übersetzungen lesen …\n");
+  process.stdout.write("  reading translations …\n");
   const [german, english] = await Promise.all([
     readSentences("deu_sentences.tsv.bz2", new Set(toGerman.values())),
     readSentences("eng_sentences.tsv.bz2", new Set(toEnglish.values())),
   ]);
 
-  const bar = progress("Sätze");
+  const bar = progress("Sentences");
   let batch: {
     sourceId: number;
     japanese: string;
@@ -107,7 +107,7 @@ export async function importTatoeba() {
 
   const total = bar.done();
   console.log(
-    `    davon mit deutscher Übersetzung: ${withGerman.toLocaleString("de-DE")}`,
+    `    with a German translation: ${withGerman.toLocaleString("en-GB")}`,
   );
   return total;
 }

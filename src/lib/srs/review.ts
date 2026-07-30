@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 
 import { emptyCard, schedule } from "./scheduler";
 
-/** Tagesschlüssel für DailyActivity — auf UTC-Mitternacht normalisiert. */
+/** Day key for DailyActivity — normalised to UTC midnight. */
 function today(now = new Date()) {
   return new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
@@ -17,9 +17,9 @@ function daysBetween(a: Date, b: Date) {
 }
 
 /**
- * Bewertet eine Karte, schreibt das Protokoll und rechnet Tagesstatistik und
- * Serie fort — alles in einer Transaktion, damit eine abgebrochene Anfrage
- * keine Karte fortschreibt, ohne sie zu protokollieren.
+ * Rates a card, writes the log and advances daily statistics and coins — all
+ * in one transaction, so an aborted request can never advance a card without
+ * logging it.
  */
 export async function applyReview(
   userId: string,
@@ -28,15 +28,15 @@ export async function applyReview(
   durationMs?: number,
 ) {
   const card = await db.srsCard.findFirst({ where: { id: cardId, userId } });
-  if (!card) throw new Error("Karte nicht gefunden");
+  if (!card) throw new Error("Card not found");
 
   const now = new Date();
   const wasNew = card.state === "new";
   const { card: next, log } = schedule(card, rating, now);
 
-  // Münzen nur für richtige Antworten, und für neue Zeichen etwas mehr.
-  // Falsche Antworten kosten nichts — Lernende sollen raten dürfen, ohne
-  // dafür bestraft zu werden.
+  // Coins only for correct answers, and slightly more for new characters.
+  // Wrong answers cost nothing — guessing shouldn't be punished, or nobody
+  // guesses any more and everyone just clicks "again".
   const coins = rating === "again" ? 0 : wasNew ? 3 : 1;
 
   await db.$transaction([
@@ -61,8 +61,8 @@ export async function applyReview(
         seconds: { increment: Math.round((durationMs ?? 0) / 1000) },
       },
     }),
-    // Der Kontostand am Nutzer ist die laufende Summe des Protokolls. Beides
-    // in derselben Transaktion, damit sie nicht auseinanderlaufen können.
+    // The balance on the user is the running sum of the log. Both in the same
+    // transaction so they cannot drift apart.
     ...(coins > 0
       ? [
           db.user.update({
@@ -81,9 +81,9 @@ export async function applyReview(
 }
 
 /**
- * Serie fortschreiben. Bewusst außerhalb der Transaktion: ein Fehler hier
- * darf keine bereits beantwortete Karte zurückrollen — eine falsche Zahl
- * neben dem Feuersymbol ist das kleinere Übel als eine verlorene Antwort.
+ * Advances the streak. Deliberately outside the transaction: a failure here
+ * must not roll back an already answered card — a wrong number next to the
+ * flame is the lesser evil compared to a lost answer.
  */
 async function updateStreak(userId: string, now: Date) {
   const user = await db.user.findUnique({
@@ -94,7 +94,7 @@ async function updateStreak(userId: string, now: Date) {
 
   const gap = user.lastStudyAt ? daysBetween(user.lastStudyAt, now) : null;
   if (gap === 0) {
-    // Heute schon gelernt — nur den Zeitstempel nachziehen.
+    // Already studied today — only bump the timestamp.
     await db.user.update({ where: { id: userId }, data: { lastStudyAt: now } });
     return;
   }
@@ -111,8 +111,8 @@ async function updateStreak(userId: string, now: Date) {
 }
 
 /**
- * Legt Karten für neue Inhalte an. Bereits begonnene Inhalte werden
- * übersprungen, damit ein doppelter Klick keine Karte zurücksetzt.
+ * Creates cards for new content. Content already started is skipped, so a
+ * double click can't reset a card.
  */
 export async function startKana(userId: string, kanaIds: string[]) {
   if (kanaIds.length === 0) return 0;

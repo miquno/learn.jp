@@ -1,6 +1,6 @@
-// Teil 1 — Nutzer, Auth, Einstellungen.
-// Teil 2 — Lerninhalte (unten): Kana, Vokabeln, Kanji, Radikale, Beispielsätze.
-// Fortschritt/SRS folgt in Phase 2, Grammatik in Phase 3, Gamification in Phase 6.
+// Part 1 — users, auth, settings.
+// Part 2 — learning content (below): kana, words, kanji, radicals, sentences.
+// Part 3 — learning progress. Part 4 — coins and avatar.
 
 generator client {
   provider = "prisma-client"
@@ -48,8 +48,8 @@ enum TokenType {
 
 model User {
   id           String  @id @default(cuid())
-  /// Fortlaufende Nummer für öffentliche Profil-URLs (/profile/1234),
-  /// damit die cuid nicht nach außen wandert.
+  /// Sequential number for public profile URLs (/profile/1234), so the cuid
+  /// never leaves the system.
   userNumber   Int     @unique @default(autoincrement())
   email        String  @unique
   username     String  @unique
@@ -62,13 +62,13 @@ model User {
   avatarUrl       String?
   discordId       String?   @unique
 
-  // Lernprofil
+  // Learning profile
   currentLevel JlptLevel?
   goalLevel    JlptLevel?
-  /// Welche JLPT-Stufen im Review-Pool auftauchen. Leer = alle.
+  /// Which JLPT levels appear in the review pool. Empty = all.
   reviewLevels JlptLevel[]
 
-  // Einstellungen
+  // Settings
   locale          Locale  @default(de)
   dailyGoalVocab  Int     @default(5)
   dailyGoalGrammar Int    @default(2)
@@ -78,13 +78,13 @@ model User {
   hideActivity    Boolean @default(false)
   pushEnabled     Boolean @default(false)
 
-  // Fortschritt auf Kontoebene
+  // Account-level progress
   coins         Int       @default(0)
   currentStreak Int       @default(0)
   longestStreak Int       @default(0)
   lastStudyAt   DateTime?
 
-  // Abo
+  // Subscription
   tier                     UserTier  @default(free)
   trialEndsAt              DateTime?
   stripeCustomerId         String?   @unique
@@ -120,13 +120,13 @@ model AuthToken {
 }
 
 // ---------------------------------------------------------------------------
-// Teil 2 — Lerninhalte
+// Part 2 — learning content
 //
-// Alle Inhalte sind nutzerunabhängig und werden per Importer aus offenen
-// Quellen befüllt (scripts/import/). Zweisprachige Felder liegen als JSON
-// `{ de: [...], en: [...] }` statt in Übersetzungstabellen: JMdict und Tatoeba
-// liefern deutsche Fassungen direkt mit, und die Felder werden praktisch
-// immer gemeinsam mit ihrem Datensatz gelesen.
+// All content is user-independent and filled by importers from open sources
+// (scripts/import/). Bilingual fields are JSON `{ de: [...], en: [...] }`
+// rather than translation tables: JMdict and Tatoeba ship German versions
+// directly, and these fields are practically always read together with their
+// record.
 // ---------------------------------------------------------------------------
 
 enum KanaScript {
@@ -141,7 +141,7 @@ enum KanaType {
   combo
 }
 
-/// Konjugationsklasse — bestimmt, welche Formen ein Wort bilden kann.
+/// Conjugation class — determines which forms a word can take.
 enum WordClass {
   godan
   ichidan
@@ -157,7 +157,7 @@ model Kana {
   romaji    String
   script    KanaScript
   type      KanaType   @default(basic)
-  /// Zeile der Kana-Tafel (a, ka, sa …) — die Lernreihenfolge folgt ihr.
+  /// Row of the kana table (a, ka, sa …) — learning order follows it.
   row       String
   order     Int
 
@@ -170,13 +170,13 @@ model Kana {
 
 model Word {
   id       String @id @default(cuid())
-  /// JMdict-Eintragsnummer (ent_seq). Stabil über Neuimporte hinweg und
-  /// damit der Anker für idempotente Aktualisierungen.
+  /// JMdict entry number (ent_seq). Stable across re-imports and therefore
+  /// the anchor for idempotent updates.
   sourceId Int?   @unique
 
-  /// Schreibung in Kanji. Leer bei Wörtern, die nur in Kana existieren.
+  /// Kanji spelling. Empty for words that only exist in kana.
   written String?
-  /// Lesung in Kana — immer gesetzt.
+  /// Reading in kana — always set.
   reading String
   romaji  String
 
@@ -186,8 +186,8 @@ model Word {
   wordClass    WordClass @default(other)
 
   jlptLevel JlptLevel?
-  /// Häufigkeitsrang aus JMdict (kleiner = häufiger). Bestimmt zusammen mit
-  /// dem JLPT-Level die Lernreihenfolge.
+  /// Frequency rank from JMdict (lower = more common). Together with the JLPT
+  /// level it determines learning order.
   frequency Int?
   isCommon  Boolean    @default(false)
 
@@ -208,26 +208,25 @@ model Kanji {
   character String @unique
 
   /// { de: string[], en: string[] }
-  /// Achtung: KANJIDIC2 liefert Englisch, Französisch, Spanisch und
-  /// Portugiesisch — aber kein Deutsch. `de` bleibt nach dem Import leer und
-  /// wird in einem eigenen Schritt gefüllt.
+  /// Note: KANJIDIC2 ships English, French, Spanish and Portuguese — but no
+  /// German. `de` stays empty after import and is filled in a separate step.
   meanings    Json
   onyomi      String[]
   kunyomi     String[]
   strokeCount Int
 
-  /// Abgeleitete Stufe der heutigen fünfstufigen Skala (siehe scripts/import/jlpt.ts).
+  /// Derived level on today's five-step scale (see scripts/import/jlpt.ts).
   jlptLevel JlptLevel?
-  /// Rohwert aus KANJIDIC2 auf der *alten* vierstufigen Skala (4 = leichteste).
-  /// Getrennt gespeichert, damit die Ableitung wiederholbar bleibt und nicht
-  /// beim zweiten Lauf ihr eigenes Ergebnis als Quelle liest.
+  /// Raw value from KANJIDIC2 on the *old* four-step scale (4 = easiest).
+  /// Stored separately so the derivation stays repeatable and doesn't read its
+  /// own output as input on a second run.
   sourceJlpt Int?
-  /// Schuljahr der japanischen Grundschule (1–6) bzw. 8 für Jōyō-Kanji
-  /// der Sekundarstufe. Nützlich als Reihenfolge, wo JLPT-Daten fehlen.
+  /// Japanese school grade (1–6), or 8 for secondary-school Jōyō kanji.
+  /// Useful as an ordering where JLPT data is missing.
   grade     Int?
   frequency Int?
 
-  /// SVG-Pfade der Striche aus KanjiVG, in Schreibreihenfolge.
+  /// SVG stroke paths from KanjiVG, in writing order.
   strokeOrder Json?
 
   createdAt DateTime @default(now())
@@ -277,15 +276,15 @@ model KanjiWord {
 
 model Sentence {
   id       String @id @default(cuid())
-  /// Tatoeba-Satz-ID.
+  /// Tatoeba sentence id.
   sourceId Int?   @unique
 
   japanese String
-  /// { de?: string, en?: string } — nicht jeder Satz hat beide Sprachen.
+  /// { de?: string, en?: string } — not every sentence has both languages.
   translations Json
 
-  /// Anzahl enthaltener Kanji und Zeichenlänge bestimmen, ab welchem Niveau
-  /// ein Satz als Beispiel taugt.
+  /// Kanji count and character length decide from which level a sentence is
+  /// usable as an example.
   charCount  Int
   kanjiCount Int
   jlptLevel  JlptLevel?
@@ -310,12 +309,11 @@ model WordSentence {
 }
 
 // ---------------------------------------------------------------------------
-// Teil 3 — Lernfortschritt
+// Part 3 — learning progress
 //
-// Grundsatz: Fortschritt wird *protokolliert*, nicht nur als Zustand gehalten.
-// Ohne ReviewLog und DailyActivity gäbe es weder Heatmap noch Streak,
-// Rangliste oder Schwächen-Auswertung — und nachträglich lassen sich diese
-// Daten nicht rekonstruieren.
+// Principle: progress is *logged*, not merely held as state. Without ReviewLog
+// and DailyActivity there would be no heatmap, streak, leaderboard or weakness
+// analysis — and none of that data can be reconstructed after the fact.
 // ---------------------------------------------------------------------------
 
 enum SrsItemType {
@@ -324,7 +322,7 @@ enum SrsItemType {
   kanji
 }
 
-/// Zustände des FSRS-Algorithmus.
+/// States of the FSRS algorithm.
 enum SrsState {
   new
   learning
@@ -332,7 +330,7 @@ enum SrsState {
   relearning
 }
 
-/// Bewertung einer Antwort. Die Zahlenwerte entsprechen FSRS: 1–4.
+/// Rating of an answer. The numeric values match FSRS: 1–4.
 enum SrsRating {
   again
   hard
@@ -346,8 +344,8 @@ model SrsCard {
   user     User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   itemType SrsItemType
 
-  // Getrennte Fremdschlüssel statt einer polymorphen ID: so räumt die
-  // Datenbank verwaiste Karten selbst ab, wenn Inhalte neu importiert werden.
+  // Separate foreign keys instead of one polymorphic id: this lets the
+  // database clean up orphaned cards itself when content is re-imported.
   kanaId  String?
   kana    Kana?  @relation(fields: [kanaId], references: [id], onDelete: Cascade)
   wordId  String?
@@ -355,7 +353,7 @@ model SrsCard {
   kanjiId String?
   kanji   Kanji? @relation(fields: [kanjiId], references: [id], onDelete: Cascade)
 
-  // FSRS-Zustand
+  // FSRS state
   state         SrsState  @default(new)
   due           DateTime  @default(now())
   stability     Float     @default(0)
@@ -364,8 +362,8 @@ model SrsCard {
   scheduledDays Int       @default(0)
   reps          Int       @default(0)
   lapses        Int       @default(0)
-  /// Position innerhalb der Lernschritte. Ohne dieses Feld begänne eine Karte
-  /// in der Lernphase bei jeder Wiederholung wieder beim ersten Schritt.
+  /// Position within the learning steps. Without this field a card in the
+  /// learning phase would restart at the first step on every review.
   learningSteps Int       @default(0)
   lastReviewAt  DateTime?
 
@@ -374,8 +372,8 @@ model SrsCard {
 
   logs ReviewLog[]
 
-  // Je Nutzer höchstens eine Karte pro Inhalt. Postgres behandelt NULL-Werte
-  // als verschieden, deshalb stören die jeweils leeren Spalten nicht.
+  // At most one card per content item per user. Postgres treats NULLs as
+  // distinct, so the empty columns don't collide.
   @@unique([userId, kanaId])
   @@unique([userId, wordId])
   @@unique([userId, kanjiId])
@@ -388,19 +386,19 @@ model ReviewLog {
   id     String  @id @default(cuid())
   cardId String
   card   SrsCard @relation(fields: [cardId], references: [id], onDelete: Cascade)
-  /// Doppelt geführt, damit Statistiken über Zeiträume ohne Join auskommen.
+  /// Duplicated so statistics over time ranges need no join.
   userId String
 
   rating SrsRating
-  /// Zustand *vor* dieser Wiederholung — nötig, um den Verlauf später mit
-  /// anderen Parametern neu durchrechnen zu können.
+  /// State *before* this review — needed to recompute the history with
+  /// different parameters later.
   state         SrsState
   stability     Float
   difficulty    Float
   elapsedDays   Int
   scheduledDays Int
-  /// Antwortdauer in Millisekunden. Verrät, ob etwas wirklich saß oder nur
-  /// mühsam erraten wurde.
+  /// Answer duration in milliseconds. Reveals whether something was solid or
+  /// laboriously guessed.
   durationMs Int?
 
   reviewedAt DateTime @default(now())
@@ -410,14 +408,14 @@ model ReviewLog {
   @@map("review_logs")
 }
 
-/// Eine Zeile je Nutzer und Tag. Grundlage für Heatmap, Streak und Rangliste.
+/// One row per user and day. Basis for heatmap, streak and leaderboard.
 model DailyActivity {
   userId String
   user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  /// Auf UTC-Mitternacht normalisiert. Eine echte Zeitzone je Nutzer fehlt
-  /// noch — wer spätabends lernt, bekommt den Beitrag je nach Ort dem
-  /// Folgetag gutgeschrieben. Für Heatmap und Streak vertretbar, für die
-  /// Rangliste später nachzuziehen.
+  /// Normalised to UTC midnight. A real per-user timezone is still missing —
+  /// someone studying late gets credited to the following day depending on
+  /// where they are. Acceptable for heatmap and streak, to be fixed before the
+  /// leaderboard.
   date   DateTime @db.Date
 
   reviews  Int @default(0)
@@ -431,12 +429,12 @@ model DailyActivity {
 }
 
 // ---------------------------------------------------------------------------
-// Teil 4 — Münzen und Avatar
+// Part 4 — coins and avatar
 //
-// Statt einer baubaren Insel wie beim Vorbild gibt es eine Pixel-Figur, die
-// eingekleidet wird. Zwei Gründe: ein Ebenen-Sprite ist ungleich einfacher
-// als ein isometrischer Kacheleditor mit drei Terrain-Schichten, und die App
-// grenzt sich damit sichtbar vom Vorbild ab.
+// Instead of a buildable island like the reference product, there is a pixel
+// character to dress up. Two reasons: a layered sprite is far simpler than an
+// isometric tile editor with three terrain layers, and it visibly sets the app
+// apart from its model.
 // ---------------------------------------------------------------------------
 
 enum ItemRarity {
@@ -447,7 +445,7 @@ enum ItemRarity {
   legendary
 }
 
-/// Ebenen der Figur, von hinten nach vorn gezeichnet.
+/// Layers of the character, drawn back to front.
 enum AvatarSlot {
   background
   hair_back
@@ -476,12 +474,12 @@ model ShopItem {
   rarity ItemRarity
   price  Int
 
-  /// Schlüssel der Grafik in src/lib/avatar/parts.ts. Die Zeichnungen liegen
-  /// im Code, nicht als Bilddateien — so bleiben sie in jeder Auflösung
-  /// scharf und lassen sich umfärben.
+  /// Key of the artwork in src/lib/avatar/parts.ts. The drawings live in code
+  /// rather than as image files — that keeps them crisp at any resolution and
+  /// recolourable.
   assetKey String
 
-  /// Nur für diese Basis verwendbar. Leer = passt auf beide.
+  /// Usable only with this base. Empty = fits both.
   onlyBase AvatarBase?
 
   order Int @default(0)
@@ -508,11 +506,11 @@ model AvatarLoadout {
   user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   base   AvatarBase @default(feminine)
 
-  /// Hex-Farben, mit denen Haut und Haare eingefärbt werden.
+  /// Hex colours used to tint skin and hair.
   skinTone  String @default("#f2c9a0")
   hairColor String @default("#3b2a24")
 
-  /// { slot: shopItemId } — nur belegte Ebenen stehen drin.
+  /// { slot: shopItemId } — only occupied layers appear.
   equipped Json @default("{}")
 
   updatedAt DateTime @updatedAt
@@ -520,18 +518,17 @@ model AvatarLoadout {
   @@map("avatar_loadouts")
 }
 
-/// Jede Münzbewegung einzeln. Der Kontostand am Nutzer ist die laufende
-/// Summe; stimmen beide nicht überein, ist etwas schiefgelaufen und lässt
-/// sich hier nachvollziehen.
+/// Every coin movement individually. The balance on the user is the running
+/// sum; if the two disagree something went wrong and can be traced here.
 model CoinTransaction {
   id     String @id @default(cuid())
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  /// Positiv beim Verdienen, negativ beim Kauf.
+  /// Positive when earned, negative when spent.
   delta  Int
   reason String
-  /// Bezug je nach Grund: Karten-ID beim Lernen, Artikel-ID beim Kauf.
+  /// Reference depending on reason: card id when studying, item id on purchase.
   refId  String?
 
   createdAt DateTime @default(now())

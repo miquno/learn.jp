@@ -15,19 +15,19 @@ export type AvatarView = {
   base: "feminine" | "masculine";
   skinTone: string;
   hairColor: string;
-  /** Grafik-Schlüssel je Ebene, in Zeichenreihenfolge. */
+  /** Artwork key per layer, in draw order. */
   layers: string[];
 };
 
 type Run = { x: number; y: number; width: number; fill: string };
 
 /**
- * Wandelt ein Zeichenraster in waagerechte Balken um.
+ * Turns a character grid into horizontal runs.
  *
- * Ein Rechteck je Pixel wären bis zu 560 Elemente pro Ebene. Gleichfarbige
- * Nachbarn zusammenzufassen bringt das typischerweise auf ein Zehntel — bei
- * einer Figur, die in Listen dutzendfach vorkommt, ist das der Unterschied
- * zwischen flüssig und zäh.
+ * One rectangle per pixel would be up to 560 elements per layer. Merging
+ * same-coloured neighbours typically cuts that to a tenth — for a character
+ * that appears dozens of times in lists, that is the difference between
+ * smooth and sluggish.
  */
 function toRuns(part: Part, colors: AvatarColors): Run[] {
   const runs: Run[] = [];
@@ -76,8 +76,8 @@ export function Avatar({
 }) {
   const body = BODIES[view.base];
 
-  // Hintergründe zuerst, dann Körper, dann alles Getragene — die Reihenfolge
-  // in `layers` bestimmt, was oben liegt.
+  // Backgrounds first, then the body, then everything worn — the order in
+  // `layers` decides what sits on top.
   const parts: { part: Part; colors: AvatarColors }[] = [];
 
   for (const key of view.layers) {
@@ -109,8 +109,8 @@ export function Avatar({
       viewBox={`0 0 ${GRID_WIDTH} ${GRID_HEIGHT}`}
       width={size}
       height={(size / GRID_WIDTH) * GRID_HEIGHT}
-      // Ohne das glättet der Browser beim Hochskalieren und aus Pixelkunst
-      // wird Matsch.
+      // Without this the browser smooths when scaling up and pixel art turns
+      // to mush.
       style={{ imageRendering: "pixelated", shapeRendering: "crispEdges" }}
       className={className}
       role="img"
