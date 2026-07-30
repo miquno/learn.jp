@@ -76,12 +76,17 @@ and names the known gaps.
 
 ## Languages
 
-Every page URL carries a locale prefix (`/de/...`, `/en/...`). Without one,
-`src/proxy.ts` redirects based on a cookie or `Accept-Language`.
+The app ships in **English only**. Every page URL still carries a locale
+prefix (`/en/...`); without one, `src/proxy.ts` redirects based on a cookie or
+`Accept-Language`.
 
-German is the reference language: `src/i18n/dictionaries/de.json` defines the
-key structure and every other language must cover it fully — a missing key
-fails the type check instead of rendering an empty label at runtime.
+The locale machinery is kept deliberately: adding a language back means adding
+one JSON file under `src/i18n/dictionaries/` and one entry in
+`src/i18n/config.ts` — not rewiring routing. `en.json` defines the key
+structure through the derived `Dictionary` type, so any language added later
+must cover it fully or the type check fails.
 
-Code, comments and commit messages are English; the UI ships in both German
-and English.
+Note that the **content** in the database is still bilingual: JMdict supplies
+German meanings for 29,052 words and Tatoeba German translations for 50,069
+sentences. That data is kept rather than discarded — re-importing it costs a
+full pass over the source files.

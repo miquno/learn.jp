@@ -1,21 +1,20 @@
 import "server-only";
 
-import type de from "./dictionaries/de.json";
+import type en from "./dictionaries/en.json";
 import type { Locale } from "./config";
 
 /**
- * German is the reference for the key structure — if a key is missing in
- * another language the type check fails, instead of rendering an empty label
- * at runtime.
+ * English defines the key structure. Any language added later must cover it
+ * fully — a missing key fails the type check instead of rendering an empty
+ * label at runtime.
  */
-export type Dictionary = typeof de;
+export type Dictionary = typeof en;
 
 /**
  * Dynamic imports, so each request only pulls the dictionary it needs into
  * the server bundle.
  */
 const dictionaries: Record<Locale, () => Promise<Dictionary>> = {
-  de: () => import("./dictionaries/de.json").then((m) => m.default),
   en: () => import("./dictionaries/en.json").then((m) => m.default),
 };
 

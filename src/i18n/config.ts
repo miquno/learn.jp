@@ -1,8 +1,16 @@
-export const locales = ["de", "en"] as const;
+/**
+ * The app ships in English only.
+ *
+ * The locale machinery stays in place — URL prefix, dictionary loader,
+ * negotiation — because adding a language back means adding one JSON file and
+ * one entry here, not rewiring routing. The database still holds German
+ * meanings and translations from JMdict and Tatoeba; they are simply not read.
+ */
+export const locales = ["en"] as const;
 
 export type Locale = (typeof locales)[number];
 
-export const defaultLocale: Locale = "de";
+export const defaultLocale: Locale = "en";
 
 export function isLocale(value: string): value is Locale {
   return (locales as readonly string[]).includes(value);
@@ -10,8 +18,8 @@ export function isLocale(value: string): value is Locale {
 
 /**
  * Picks the best language from the Accept-Language header.
- * Deliberately without a dependency: two locales don't justify a full
- * BCP-47 matcher.
+ * Deliberately without a dependency: a handful of locales doesn't justify a
+ * full BCP-47 matcher.
  */
 export function matchLocale(acceptLanguage: string | null): Locale {
   if (!acceptLanguage) return defaultLocale;

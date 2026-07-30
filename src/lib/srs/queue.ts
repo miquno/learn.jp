@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SrsItemType } from "@/generated/prisma/enums";
+import type { Locale } from "@/i18n/config";
 import { db } from "@/lib/db";
 
 /** One item as shown in a lesson or review session. */
@@ -18,13 +19,14 @@ export type ReviewItem = {
 
 type Meanings = { de?: string[]; en?: string[] };
 
-function pickMeaning(meanings: unknown, locale: "de" | "en"): string | null {
+/**
+ * The database still holds German glosses from JMdict for most words, but the
+ * app ships in English only — so only `en` is read. The German data stays put
+ * rather than being thrown away: re-importing it costs a full JMdict pass.
+ */
+function pickMeaning(meanings: unknown, locale: Locale): string | null {
   const value = meanings as Meanings | null;
-  if (!value) return null;
-  // Falls back to English: German is missing entirely for kanji, and for 3.6%
-  // of words. An empty field would be worse than the other language.
-  const list = value[locale]?.length ? value[locale] : value.en;
-  return list?.[0] ?? null;
+  return value?.[locale]?.[0] ?? null;
 }
 
 /**
@@ -34,7 +36,7 @@ function pickMeaning(meanings: unknown, locale: "de" | "en"): string | null {
  */
 export async function getDueCards(
   userId: string,
-  locale: "de" | "en",
+  locale: Locale,
   limit = 100,
 ): Promise<ReviewItem[]> {
   const cards = await db.srsCard.findMany({

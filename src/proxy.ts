@@ -5,7 +5,15 @@ import { locales, matchLocale } from "@/i18n/config";
 const LOCALE_COOKIE = "locale";
 
 /**
- * Makes sure every page URL carries a locale prefix (`/de/...`).
+ * Locale prefixes the app used to serve. A path still carrying one is
+ * rewritten to the equivalent current path instead of getting the default
+ * prefix bolted on in front of it — otherwise an old `/de/dashboard` link
+ * would end up at `/en/de/dashboard`, which is a 404.
+ */
+const RETIRED_LOCALES = ["de"];
+
+/**
+ * Makes sure every page URL carries a locale prefix (`/en/...`).
  * Redirect only, on purpose — the access check happens server-side in the
  * layout under `(app)`, because per the Next docs a proxy is not meant to be
  * a full authorization solution.
@@ -24,8 +32,13 @@ export function proxy(request: NextRequest) {
       ? cookieLocale
       : matchLocale(request.headers.get("accept-language"));
 
+  const retired = RETIRED_LOCALES.find(
+    (old) => pathname === `/${old}` || pathname.startsWith(`/${old}/`),
+  );
+  const rest = retired ? pathname.slice(retired.length + 1) : pathname;
+
   const url = request.nextUrl.clone();
-  url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
+  url.pathname = `/${locale}${rest === "/" ? "" : rest}`;
   return NextResponse.redirect(url);
 }
 

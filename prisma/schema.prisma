@@ -36,6 +36,8 @@ enum JlptLevel {
   N1
 }
 
+/// The app ships in English only; the enum keeps room for more without a
+/// migration. Content in the database still carries German alongside English.
 enum Locale {
   de
   en
@@ -69,7 +71,7 @@ model User {
   reviewLevels JlptLevel[]
 
   // Settings
-  locale          Locale  @default(de)
+  locale          Locale  @default(en)
   dailyGoalVocab  Int     @default(5)
   dailyGoalGrammar Int    @default(2)
   audioSpeed      Float   @default(1.0)
