@@ -76,17 +76,24 @@ and names the known gaps.
 
 ## Languages
 
-The app ships in **English only**. Every page URL still carries a locale
-prefix (`/en/...`); without one, `src/proxy.ts` redirects based on a cookie or
-`Accept-Language`.
+The app ships in **English and German**, switchable from the UI. Every page
+URL carries a locale prefix (`/en/...`, `/de/...`); without one,
+`src/proxy.ts` redirects based on the switcher's cookie, falling back to
+`Accept-Language`. A deliberate choice wins over the browser setting.
 
-The locale machinery is kept deliberately: adding a language back means adding
-one JSON file under `src/i18n/dictionaries/` and one entry in
-`src/i18n/config.ts` — not rewiring routing. `en.json` defines the key
-structure through the derived `Dictionary` type, so any language added later
-must cover it fully or the type check fails.
+English is the reference language: `en.json` defines the key structure through
+the derived `Dictionary` type, so every other language must cover it fully or
+the type check fails. Adding a third language means one JSON file under
+`src/i18n/dictionaries/` and one entry in `src/i18n/config.ts` — routing needs
+no changes.
 
-Note that the **content** in the database is still bilingual: JMdict supplies
-German meanings for 29,052 words and Tatoeba German translations for 50,069
-sentences. That data is kept rather than discarded — re-importing it costs a
-full pass over the source files.
+Code, comments and commit messages are English regardless of UI language.
+
+The **content** in the database is bilingual too: JMdict supplies German
+meanings for 29,052 words and Tatoeba German translations for 50,069
+sentences.
+
+## Status
+
+See [ROADMAP.md](ROADMAP.md) for what is built, what blocks what, and what is
+still missing.
