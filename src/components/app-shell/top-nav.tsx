@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
 
+import { LanguageSwitcher } from "./language-switcher";
 import { LogoutButton } from "./logout-button";
 
 type Props = {
@@ -63,6 +64,7 @@ export function TopNav({ locale, dict, username, coins }: Props) {
             <span aria-hidden>◎</span>
           </span>
           <span className="text-content-muted">{username}</span>
+          <LanguageSwitcher current={locale} />
           <LogoutButton label={dict.nav.logout} locale={locale} />
         </div>
       </nav>

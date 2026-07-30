@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { LanguageSwitcher } from "@/components/app-shell/language-switcher";
 import { isLocale } from "@/i18n/config";
 
-export default async function AuthLayout({
+export default async function MarketingLayout({
   children,
   params,
 }: LayoutProps<"/[lang]">) {
@@ -11,13 +11,11 @@ export default async function AuthLayout({
   if (!isLocale(lang)) notFound();
 
   return (
-    <main className="relative flex min-h-dvh items-center justify-center px-6 py-16">
-      {/* Reachable before signing in too — someone who lands on the German
-          page by accident shouldn't have to guess the URL. */}
-      <div className="absolute right-6 top-6">
+    <div className="relative">
+      <div className="absolute right-6 top-6 z-10">
         <LanguageSwitcher current={lang} />
       </div>
       {children}
-    </main>
+    </div>
   );
 }
