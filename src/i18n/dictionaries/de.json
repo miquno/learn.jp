@@ -18,7 +18,8 @@
     "profile": "Profil",
     "logout": "Abmelden",
     "login": "Anmelden",
-    "register": "Konto erstellen"
+    "register": "Konto erstellen",
+    "vocab": "Vokabeln"
   },
   "landing": {
     "heroTitle": "Von null bis JLPT N1",
@@ -81,7 +82,15 @@
     "toReview": "Zum Wiederholen",
     "added": "{count} Zeichen zu deinen Wiederholungen hinzugefügt.",
     "locked": "Erst Kana abschließen",
-    "lockedBody": "Vokabeln und Grammatik werden freigeschaltet, sobald du beide Silbenschriften beherrschst."
+    "lockedBody": "Vokabeln und Grammatik werden freigeschaltet, sobald du beide Silbenschriften beherrschst.",
+    "vocab_title": "Vokabeln lernen",
+    "vocab_intro": "Neue Wörter in der Reihenfolge, in der ein Kurs sie beibringt: leichteste Stufe zuerst, häufigste Wörter zuerst.",
+    "vocab_locked": "Erst Hiragana abschließen",
+    "vocab_lockedBody": "Vokabeln werden freigeschaltet, sobald du jedes Hiragana gesehen hast. {started} von {total} begonnen.",
+    "vocab_toKana": "Weiter mit Kana",
+    "vocab_allStarted": "Alle Wörter auf deiner Stufe sind begonnen. Weiter geht es beim Wiederholen.",
+    "vocab_example": "Beispiel",
+    "vocab_newWords": "{count} neue Wörter"
   },
   "review": {
     "title": "Wiederholen",

@@ -129,3 +129,19 @@ export async function startKana(userId: string, kanaIds: string[]) {
 
   return result.count;
 }
+
+export async function startWords(userId: string, wordIds: string[]) {
+  if (wordIds.length === 0) return 0;
+
+  const result = await db.srsCard.createMany({
+    data: wordIds.map((wordId) => ({
+      userId,
+      itemType: "word" as const,
+      wordId,
+      ...emptyCard(),
+    })),
+    skipDuplicates: true,
+  });
+
+  return result.count;
+}

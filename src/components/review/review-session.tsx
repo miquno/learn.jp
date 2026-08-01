@@ -148,6 +148,20 @@ export function ReviewSession({ items, dict, locale }: Props) {
             {item.meaning && (
               <p className="mt-1 text-content-muted">{item.meaning}</p>
             )}
+            {/* Shown only after the answer: an example on the front would
+                give the word away through context. */}
+            {item.example && (
+              <div className="mt-4 border-t border-surface-border pt-3">
+                <p className="font-jp text-content-base">
+                  {item.example.japanese}
+                </p>
+                {item.example.translation && (
+                  <p className="mt-0.5 text-sm text-content-faint">
+                    {item.example.translation}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

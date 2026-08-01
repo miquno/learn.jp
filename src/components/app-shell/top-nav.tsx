@@ -20,6 +20,7 @@ export function TopNav({ locale, dict, username, coins }: Props) {
   const items: { label: string; href?: string }[] = [
     { label: dict.nav.dashboard, href: `/${locale}/dashboard` },
     { label: dict.nav.learn, href: `/${locale}/learn/kana` },
+    { label: dict.nav.vocab, href: `/${locale}/learn/vocab` },
     { label: dict.nav.review, href: `/${locale}/review` },
     { label: dict.nav.roadmap },
     { label: dict.nav.progress },

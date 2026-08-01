@@ -18,7 +18,8 @@
     "profile": "Profile",
     "logout": "Sign out",
     "login": "Sign in",
-    "register": "Create account"
+    "register": "Create account",
+    "vocab": "Vocabulary"
   },
   "landing": {
     "heroTitle": "Zero to JLPT N1",
@@ -81,7 +82,15 @@
     "toReview": "Go to review",
     "added": "Added {count} characters to your reviews.",
     "locked": "Finish kana first",
-    "lockedBody": "Vocabulary and grammar unlock once you know both syllabaries."
+    "lockedBody": "Vocabulary and grammar unlock once you know both syllabaries.",
+    "vocab_title": "Learn vocabulary",
+    "vocab_intro": "New words in the order a course would teach them: easiest level first, most common words first.",
+    "vocab_locked": "Finish hiragana first",
+    "vocab_lockedBody": "Vocabulary unlocks once you have seen every hiragana. {started} of {total} started.",
+    "vocab_toKana": "Continue with kana",
+    "vocab_allStarted": "Every word at your level has been started. Continue with your reviews.",
+    "vocab_example": "Example",
+    "vocab_newWords": "{count} new words"
   },
   "review": {
     "title": "Review",
