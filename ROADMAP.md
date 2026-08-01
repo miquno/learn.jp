@@ -17,6 +17,11 @@ Last updated after the avatar system landed.
   daily activity, dashboard with heatmap and stat tiles
 - **Avatar** — coins earned from reviews, transaction log, shop with rarities,
   wardrobe, appearance settings, first-party pixel artwork
+- **Radicals** — 1,418 components with 11,645 kanji links, decomposed from
+  KanjiVG (語 = 言 + 吾, 家 = 宀 + 豕)
+- **Example sentences linked to words** — 74,920 links via Aho-Corasick with a
+  kanji-boundary heuristic; 84% of N5 and 79% of N4 vocabulary has at least
+  one example
 
 ## Blockers
 
@@ -31,33 +36,23 @@ grammar half of every progress screen.
 Suggested approach: draft with the Anthropic API, edit by hand, N5 first
 (~150 points). It is the only part of the project that code cannot solve.
 
-### 2. Words are not linked to example sentences
-
-`word_sentences` is empty. 234,179 sentences are imported but nothing connects
-them to the 30,123 words, so a vocabulary card cannot show an example.
-
-Needs Japanese tokenisation — matching by substring alone produces false hits
-(「今日」 matches inside 「今日中」). Options: a morphological analyser, or
-index by surface form plus reading and accept a curated subset.
-
-Same for `kanji_words` (empty), which the kanji browser needs.
-
-### 3. Radicals are not imported
-
-`radicals` and `kanji_radicals` are empty. Radicals practice and kanji
-breakdown both depend on this. KanjiVG carries component data in its element
-attributes — the importer just doesn't read it yet.
-
-### 4. German kanji meanings are missing entirely
+### 2. German kanji meanings are missing entirely
 
 0 of 10,384 kanji have a German meaning; KANJIDIC2 ships no German. Same
 treatment as grammar: generate, then review.
+
+### 3. Kanji are not linked to the words they appear in
+
+`kanji_words` is empty, which the kanji browser needs to show "words using
+this character". Cheaper than the sentence linking that is already done —
+the characters of a word's written form are the link.
 
 ## Next up
 
 ### Phase 3 — vocabulary and grammar
 
-- Vocabulary lesson flow (flashcards for new words)
+- Vocabulary lesson flow (flashcards for new words, now that example
+  sentences are available)
 - Vocabulary and grammar in the review queue, not just kana
 - Grammar lessons
 - JLPT progress per level on the dashboard (N5–N1 counters)
