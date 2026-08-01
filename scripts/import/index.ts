@@ -13,6 +13,7 @@ import { importJmdict } from "./jmdict";
 import { importKana } from "./kana";
 import { importKanjidic } from "./kanjidic";
 import { importKanjiVg } from "./kanjivg";
+import { linkKanjiWords } from "./link-kanji";
 import { linkSentences } from "./link-sentences";
 import { importRadicals } from "./radicals";
 import { importShop } from "./shop";
@@ -28,6 +29,8 @@ const STEPS = {
   sentences: { label: "Example sentences (Tatoeba)", run: importTatoeba },
   // Needs both words and sentences in place.
   links: { label: "Word ↔ sentence links", run: linkSentences },
+  // Needs words and kanji.
+  "kanji-words": { label: "Kanji ↔ word links", run: linkKanjiWords },
   // Must run after kanji and words: the word level depends on the characters.
   jlpt: { label: "JLPT levels", run: assignJlptLevels },
   shop: { label: "Avatar items", run: importShop },
