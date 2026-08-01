@@ -168,5 +168,27 @@
     "errorTitle": "Da ist etwas schiefgelaufen",
     "errorBody": "Der Fehler wurde protokolliert. Versuch es gleich noch einmal.",
     "retry": "Erneut versuchen"
+  },
+  "progress": {
+    "title": "Fortschritt",
+    "intro": "Was du begonnen hast, was sitzt, und was dich immer wieder stolpern lässt.",
+    "kana": "Kana",
+    "vocabulary": "Vokabeln",
+    "kanji": "Kanji",
+    "grammar": "Grammatik",
+    "notYet": "Noch nicht gebaut",
+    "hiragana": "Hiragana",
+    "katakana": "Katakana",
+    "mastery": "Beherrschung",
+    "started": "begonnen",
+    "known": "sitzt",
+    "weakSpots": "Bereitet dir Mühe",
+    "weakEmpty": "Noch macht dir nichts Probleme. Gezählt wird ab drei Wiederholungen.",
+    "accuracy": "Trefferquote",
+    "reviews": "Wiederholungen",
+    "noWords": "Noch keine Vokabeln begonnen.",
+    "legendNew": "nicht begonnen",
+    "legendLearning": "am Lernen",
+    "legendKnown": "sitzt"
   }
 }

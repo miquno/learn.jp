@@ -168,5 +168,27 @@
     "errorTitle": "Something went wrong",
     "errorBody": "The error has been logged. Give it another try.",
     "retry": "Try again"
+  },
+  "progress": {
+    "title": "Progress",
+    "intro": "What you have started, what has stuck, and what keeps tripping you up.",
+    "kana": "Kana",
+    "vocabulary": "Vocabulary",
+    "kanji": "Kanji",
+    "grammar": "Grammar",
+    "notYet": "Not built yet",
+    "hiragana": "Hiragana",
+    "katakana": "Katakana",
+    "mastery": "Mastery",
+    "started": "started",
+    "known": "known",
+    "weakSpots": "Trips you up",
+    "weakEmpty": "Nothing is giving you trouble yet. Answers are counted after three reviews.",
+    "accuracy": "accuracy",
+    "reviews": "reviews",
+    "noWords": "No vocabulary started yet.",
+    "legendNew": "not started",
+    "legendLearning": "learning",
+    "legendKnown": "known"
   }
 }
