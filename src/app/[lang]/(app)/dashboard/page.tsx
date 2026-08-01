@@ -2,10 +2,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ActivityHeatmap } from "@/components/dashboard/activity-heatmap";
+import { LevelProgressPanel } from "@/components/dashboard/level-progress";
 import { isLocale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/get-dictionary";
 import { requireUser } from "@/lib/auth/guards";
-import { getActivity, getDashboardStats } from "@/lib/srs/stats";
+import {
+  getActivity,
+  getDashboardStats,
+  getLevelProgress,
+} from "@/lib/srs/stats";
 
 function StatTile({
   label,
@@ -65,9 +70,10 @@ export default async function DashboardPage({
     getDictionary(lang),
     requireUser(lang),
   ]);
-  const [stats, activity] = await Promise.all([
+  const [stats, activity, levels] = await Promise.all([
     getDashboardStats(user.id),
     getActivity(user.id),
+    getLevelProgress(user.id),
   ]);
 
   const kanaComplete =
@@ -155,6 +161,8 @@ export default async function DashboardPage({
           </div>
         </section>
       </div>
+
+      <LevelProgressPanel levels={levels} dict={dict} />
     </div>
   );
 }

@@ -95,3 +95,76 @@ export async function getDashboardStats(userId: string) {
     },
   };
 }
+
+export type LevelProgress = {
+  level: "N5" | "N4" | "N3" | "N2" | "N1";
+  words: { known: number; total: number };
+  kanji: { known: number; total: number };
+};
+
+/**
+ * Per-JLPT-level coverage of words and kanji.
+ *
+ * Counted with grouped queries rather than five round trips per category —
+ * ten levels times two categories would otherwise be twenty statements for
+ * one dashboard panel.
+ *
+ * "Known" means the card has left the learning phase, the same definition the
+ * kana bars use. Anything looser and the numbers flatter without meaning
+ * anything.
+ */
+export async function getLevelProgress(
+  userId: string,
+): Promise<LevelProgress[]> {
+  const [wordTotals, kanjiTotals, wordKnown, kanjiKnown] = await Promise.all([
+    db.word.groupBy({
+      by: ["jlptLevel"],
+      where: { jlptLevel: { not: null } },
+      _count: true,
+    }),
+    db.kanji.groupBy({
+      by: ["jlptLevel"],
+      where: { jlptLevel: { not: null } },
+      _count: true,
+    }),
+    db.srsCard.findMany({
+      where: { userId, state: "review", wordId: { not: null } },
+      select: { word: { select: { jlptLevel: true } } },
+    }),
+    db.srsCard.findMany({
+      where: { userId, state: "review", kanjiId: { not: null } },
+      select: { kanji: { select: { jlptLevel: true } } },
+    }),
+  ]);
+
+  const tally = (rows: { jlptLevel: string | null }[]) => {
+    const map = new Map<string, number>();
+    for (const row of rows) {
+      if (!row.jlptLevel) continue;
+      map.set(row.jlptLevel, (map.get(row.jlptLevel) ?? 0) + 1);
+    }
+    return map;
+  };
+
+  const wordTotalBy = new Map(
+    wordTotals.map((row) => [row.jlptLevel as string, row._count]),
+  );
+  const kanjiTotalBy = new Map(
+    kanjiTotals.map((row) => [row.jlptLevel as string, row._count]),
+  );
+  const wordKnownBy = tally(wordKnown.map((c) => c.word!));
+  const kanjiKnownBy = tally(kanjiKnown.map((c) => c.kanji!));
+
+  // N5 first: the order people work through them.
+  return (["N5", "N4", "N3", "N2", "N1"] as const).map((level) => ({
+    level,
+    words: {
+      known: wordKnownBy.get(level) ?? 0,
+      total: wordTotalBy.get(level) ?? 0,
+    },
+    kanji: {
+      known: kanjiKnownBy.get(level) ?? 0,
+      total: kanjiTotalBy.get(level) ?? 0,
+    },
+  }));
+}

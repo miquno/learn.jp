@@ -70,7 +70,11 @@
     "more": "more",
     "kanaProgress": "Kana progress",
     "hiragana": "Hiragana",
-    "katakana": "Katakana"
+    "katakana": "Katakana",
+    "jlptProgress": "JLPT progress",
+    "words": "words",
+    "kanji": "kanji",
+    "jlptEmpty": "Levels fill up as you learn. N5 is the starting point."
   },
   "learn": {
     "kanaTitle": "Learn kana",
