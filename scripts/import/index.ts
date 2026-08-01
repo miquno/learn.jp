@@ -13,6 +13,8 @@ import { importJmdict } from "./jmdict";
 import { importKana } from "./kana";
 import { importKanjidic } from "./kanjidic";
 import { importKanjiVg } from "./kanjivg";
+import { linkSentences } from "./link-sentences";
+import { importRadicals } from "./radicals";
 import { importShop } from "./shop";
 import { importTatoeba } from "./tatoeba";
 
@@ -21,7 +23,11 @@ const STEPS = {
   words: { label: "Words (JMdict)", run: importJmdict },
   kanji: { label: "Kanji (KANJIDIC2)", run: importKanjidic },
   strokes: { label: "Stroke order (KanjiVG)", run: importKanjiVg },
+  // Needs the kanji: meanings and stroke counts are borrowed from them.
+  radicals: { label: "Radicals (KanjiVG)", run: importRadicals },
   sentences: { label: "Example sentences (Tatoeba)", run: importTatoeba },
+  // Needs both words and sentences in place.
+  links: { label: "Word ↔ sentence links", run: linkSentences },
   // Must run after kanji and words: the word level depends on the characters.
   jlpt: { label: "JLPT levels", run: assignJlptLevels },
   shop: { label: "Avatar items", run: importShop },
