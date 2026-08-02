@@ -21,6 +21,7 @@ export function TopNav({ locale, dict, username, coins }: Props) {
     { label: dict.nav.dashboard, href: `/${locale}/dashboard` },
     { label: dict.nav.learn, href: `/${locale}/learn/kana` },
     { label: dict.nav.vocab, href: `/${locale}/learn/vocab` },
+    { label: dict.nav.grammar, href: `/${locale}/learn/grammar` },
     { label: dict.nav.review, href: `/${locale}/review` },
     { label: dict.nav.roadmap },
     { label: dict.nav.progress, href: `/${locale}/progress` },

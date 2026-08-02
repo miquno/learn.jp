@@ -65,6 +65,7 @@ export async function getDueCards(
       // One example is enough on a card; loading all eight would be wasted
       // bytes on every review.
       word: { include: { sentences: { take: 1, include: { sentence: true } } } },
+      grammar: true,
     },
   });
 
@@ -99,6 +100,27 @@ export async function getDueCards(
         reading: card.kanji.kunyomi[0] ?? card.kanji.onyomi[0] ?? "",
         meaning: pickMeaning(card.kanji.meanings, locale),
         example: null,
+        isNew: card.state === "new",
+      }];
+    }
+    if (card.grammar) {
+      const meanings = card.grammar.meaning as { de?: string; en?: string };
+      const examples = card.grammar.examples as {
+        japanese: string;
+        translations: Record<string, string>;
+      }[];
+      const first = examples[0];
+      return [{
+        cardId: card.id,
+        itemType: card.itemType,
+        prompt: card.grammar.title,
+        // The "reading" slot carries the meaning for grammar — it's what gets
+        // revealed as the answer.
+        reading: meanings[locale] ?? meanings.en ?? "",
+        meaning: card.grammar.structure,
+        example: first
+          ? { japanese: first.japanese, translation: first.translations[locale] ?? null }
+          : null,
         isNew: card.state === "new",
       }];
     }
@@ -209,4 +231,38 @@ export async function isVocabularyUnlocked(userId: string) {
   ]);
 
   return { unlocked: started >= hiragana, started, total: hiragana };
+}
+
+/**
+ * The next grammar points not yet started, in teaching order.
+ *
+ * Only reviewed points are offered — a machine-drafted explanation that a
+ * human hasn't checked must never reach a learner (see scripts/import/grammar.ts).
+ */
+export async function getNextGrammar(userId: string, limit: number) {
+  const started = await db.srsCard.findMany({
+    where: { userId, grammarId: { not: null } },
+    select: { grammarId: true },
+  });
+  const startedIds = started
+    .map((card) => card.grammarId)
+    .filter((id): id is string => id !== null);
+
+  return db.grammarPoint.findMany({
+    where: {
+      id: { notIn: startedIds },
+      reviewed: true,
+      jlptLevel: { not: undefined },
+    },
+    orderBy: [{ jlptLevel: "asc" }, { order: "asc" }],
+    take: limit,
+  });
+}
+
+/**
+ * Whether grammar is unlocked. Same rule as vocabulary: once every hiragana
+ * has been started, the learner can read the example sentences.
+ */
+export async function isGrammarUnlocked(userId: string) {
+  return isVocabularyUnlocked(userId);
 }

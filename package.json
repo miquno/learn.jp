@@ -9,7 +9,8 @@
     "lint": "eslint",
     "download": "bash scripts/import/download.sh",
     "import": "tsx scripts/import/index.ts",
-    "import:stats": "tsx scripts/import/stats.ts"
+    "import:stats": "tsx scripts/import/stats.ts",
+    "grammar": "tsx scripts/import/grammar.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.112.1",

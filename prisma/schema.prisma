@@ -322,6 +322,7 @@ enum SrsItemType {
   kana
   word
   kanji
+  grammar
 }
 
 /// States of the FSRS algorithm.
@@ -354,6 +355,8 @@ model SrsCard {
   word    Word?  @relation(fields: [wordId], references: [id], onDelete: Cascade)
   kanjiId String?
   kanji   Kanji? @relation(fields: [kanjiId], references: [id], onDelete: Cascade)
+  grammarId String?
+  grammar   GrammarPoint? @relation(fields: [grammarId], references: [id], onDelete: Cascade)
 
   // FSRS state
   state         SrsState  @default(new)
@@ -379,6 +382,7 @@ model SrsCard {
   @@unique([userId, kanaId])
   @@unique([userId, wordId])
   @@unique([userId, kanjiId])
+  @@unique([userId, grammarId])
   @@index([userId, due])
   @@index([userId, itemType, state])
   @@map("srs_cards")
@@ -537,4 +541,48 @@ model CoinTransaction {
 
   @@index([userId, createdAt])
   @@map("coin_transactions")
+}
+
+// ---------------------------------------------------------------------------
+// Part 5 — grammar
+//
+// The one blocker that code cannot solve: no open dataset for JLPT grammar
+// exists. Points are generated with the Anthropic API (scripts/import/grammar.ts)
+// and then edited by hand — the schema holds the result, and every field is
+// human-correctable after generation.
+// ---------------------------------------------------------------------------
+
+model GrammarPoint {
+  id   String @id @default(cuid())
+  /// Stable handle used in URLs and by the generator to stay idempotent.
+  slug String @unique
+
+  /// The pattern itself, e.g. 「〜たいです」.
+  title String
+  /// The formation rule, e.g. "verb stem + たい".
+  structure String
+
+  /// { de: string, en: string } — one-line gloss of what it expresses.
+  meaning Json
+  /// { de: string, en: string } — the teaching text (Markdown).
+  explanation Json
+  /// [{ japanese, translations: { de, en } }] — worked examples.
+  examples Json
+
+  jlptLevel JlptLevel
+  /// Learning order within a level. Grammar has a natural teaching sequence
+  /// (copula before て-form before conditionals) that frequency can't supply.
+  order Int
+
+  /// Marks generated-but-unreviewed rows so the UI can hide them until a human
+  /// has checked the machine draft. Nothing unreviewed reaches a learner.
+  reviewed Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  srsCards SrsCard[]
+
+  @@index([jlptLevel, order])
+  @@map("grammar_points")
 }

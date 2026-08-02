@@ -145,3 +145,19 @@ export async function startWords(userId: string, wordIds: string[]) {
 
   return result.count;
 }
+
+export async function startGrammar(userId: string, grammarIds: string[]) {
+  if (grammarIds.length === 0) return 0;
+
+  const result = await db.srsCard.createMany({
+    data: grammarIds.map((grammarId) => ({
+      userId,
+      itemType: "grammar" as const,
+      grammarId,
+      ...emptyCard(),
+    })),
+    skipDuplicates: true,
+  });
+
+  return result.count;
+}

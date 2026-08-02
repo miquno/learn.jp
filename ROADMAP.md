@@ -22,19 +22,29 @@ Last updated after the avatar system landed.
 - **Example sentences linked to words** — 74,920 links via Aho-Corasick with a
   kanji-boundary heuristic; 84% of N5 and 79% of N4 vocabulary has at least
   one example
+- **Kanji linked to words** — 26,435 links across 2,873 kanji, capped at the
+  20 most frequent words each
+- **Vocabulary lessons and reviews** — flashcards in JLPT order with example
+  sentences, gated behind hiragana; JLPT progress panel on the dashboard
+- **Grammar machinery** — schema, lessons, reviews, unlock gate, and an
+  Anthropic-API generator; verified end to end with a placeholder point.
+  Awaiting a generation run (see blocker 1)
 
 ## Blockers
 
 These hold up more than one thing downstream. Worth doing first.
 
-### 1. Grammar content does not exist
+### 1. Grammar content still has to be generated
 
-There is no open dataset for JLPT grammar. ~800 grammar points have to be
-written. This blocks grammar lessons, grammar reviews, cheat sheets and the
-grammar half of every progress screen.
+The machinery is built — schema, lessons, reviews, the unlock gate, and a
+generator (`scripts/import/grammar.ts`) that drafts points with the Anthropic
+API against a fixed N5 syllabus of 25 points. What's missing is a run: it
+needs an `ANTHROPIC_API_KEY` (or `ant auth login`), and every generated row
+lands `reviewed: false` and must be checked by hand before it reaches a
+learner. Nothing else in the project depends on code that doesn't exist now —
+only on that generation-plus-review pass.
 
-Suggested approach: draft with the Anthropic API, edit by hand, N5 first
-(~150 points). It is the only part of the project that code cannot solve.
+`npm run grammar N5` performs the run once a key is available.
 
 ### 2. German kanji meanings are missing entirely
 
@@ -51,13 +61,11 @@ the characters of a word's written form are the link.
 
 ### Phase 3 — vocabulary and grammar
 
-- Vocabulary lesson flow (flashcards for new words, now that example
-  sentences are available)
-- Vocabulary and grammar in the review queue, not just kana
-- Grammar lessons
-- JLPT progress per level on the dashboard (N5–N1 counters)
-- Progress screens: vocabulary, grammar, kanji, kana, conjugation — including
-  the "focus area" analysis the review log already has the data for
+Mostly done — remaining:
+
+- Generate and review the N5 grammar content (blocker 1)
+- Progress screens beyond the current one: grammar, kanji, conjugation
+  breakdowns (kana and vocabulary already have theirs)
 
 ### Phase 4 — path and reference
 

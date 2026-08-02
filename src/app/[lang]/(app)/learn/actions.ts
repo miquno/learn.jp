@@ -5,7 +5,12 @@ import * as z from "zod";
 
 import { defaultLocale, isLocale } from "@/i18n/config";
 import { auth } from "@/lib/auth";
-import { applyReview, startKana, startWords } from "@/lib/srs/review";
+import {
+  applyReview,
+  startGrammar,
+  startKana,
+  startWords,
+} from "@/lib/srs/review";
 
 const ratingSchema = z.enum(["again", "hard", "good", "easy"]);
 
@@ -32,6 +37,16 @@ export async function beginVocabLesson(wordIds: string[], lang: string) {
 
   const locale = isLocale(lang) ? lang : defaultLocale;
   revalidatePath(`/${locale}/learn/vocab`);
+  revalidatePath(`/${locale}/dashboard`);
+  return added;
+}
+
+export async function beginGrammarLesson(grammarIds: string[], lang: string) {
+  const userId = await requireUserId();
+  const added = await startGrammar(userId, grammarIds.slice(0, 20));
+
+  const locale = isLocale(lang) ? lang : defaultLocale;
+  revalidatePath(`/${locale}/learn/grammar`);
   revalidatePath(`/${locale}/dashboard`);
   return added;
 }

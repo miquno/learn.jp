@@ -19,7 +19,8 @@
     "logout": "Abmelden",
     "login": "Anmelden",
     "register": "Konto erstellen",
-    "vocab": "Vokabeln"
+    "vocab": "Vokabeln",
+    "grammar": "Grammatik"
   },
   "landing": {
     "heroTitle": "Von null bis JLPT N1",
@@ -94,7 +95,16 @@
     "vocab_toKana": "Weiter mit Kana",
     "vocab_allStarted": "Alle Wörter auf deiner Stufe sind begonnen. Weiter geht es beim Wiederholen.",
     "vocab_example": "Beispiel",
-    "vocab_newWords": "{count} neue Wörter"
+    "vocab_newWords": "{count} neue Wörter",
+    "grammar_title": "Grammatik lernen",
+    "grammar_intro": "Grammatikmuster in Lernreihenfolge — erst Kopula und Partikel, dann Verbformen, dann Bedingungssätze.",
+    "grammar_locked": "Erst Hiragana abschließen",
+    "grammar_lockedBody": "Grammatik wird freigeschaltet, sobald du jedes Hiragana gesehen hast. {started} von {total} begonnen.",
+    "grammar_allStarted": "Alle Grammatikpunkte auf deiner Stufe sind begonnen. Weiter geht es beim Wiederholen.",
+    "grammar_none": "Es wurde noch keine Grammatik geprüft und freigegeben.",
+    "grammar_newToday": "{count} neue Muster",
+    "grammar_structure": "Struktur",
+    "grammar_examples": "Beispiele"
   },
   "review": {
     "title": "Wiederholen",

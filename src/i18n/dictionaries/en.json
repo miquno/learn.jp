@@ -19,7 +19,8 @@
     "logout": "Sign out",
     "login": "Sign in",
     "register": "Create account",
-    "vocab": "Vocabulary"
+    "vocab": "Vocabulary",
+    "grammar": "Grammar"
   },
   "landing": {
     "heroTitle": "Zero to JLPT N1",
@@ -94,7 +95,16 @@
     "vocab_toKana": "Continue with kana",
     "vocab_allStarted": "Every word at your level has been started. Continue with your reviews.",
     "vocab_example": "Example",
-    "vocab_newWords": "{count} new words"
+    "vocab_newWords": "{count} new words",
+    "grammar_title": "Learn grammar",
+    "grammar_intro": "Grammar patterns in teaching order — the copula and particles first, then verb forms, then conditionals.",
+    "grammar_locked": "Finish hiragana first",
+    "grammar_lockedBody": "Grammar unlocks once you have seen every hiragana. {started} of {total} started.",
+    "grammar_allStarted": "Every grammar point at your level has been started. Continue with your reviews.",
+    "grammar_none": "No grammar has been reviewed and published yet.",
+    "grammar_newToday": "{count} new patterns",
+    "grammar_structure": "Structure",
+    "grammar_examples": "Examples"
   },
   "review": {
     "title": "Review",
