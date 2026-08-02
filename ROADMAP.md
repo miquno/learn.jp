@@ -34,17 +34,21 @@ Last updated after the avatar system landed.
 
 These hold up more than one thing downstream. Worth doing first.
 
-### 1. Grammar content still has to be generated
+### 1. Grammar content: N5 written, awaiting review and furigana
 
-The machinery is built — schema, lessons, reviews, the unlock gate, and a
-generator (`scripts/import/grammar.ts`) that drafts points with the Anthropic
-API against a fixed N5 syllabus of 25 points. What's missing is a run: it
-needs an `ANTHROPIC_API_KEY` (or `ant auth login`), and every generated row
-lands `reviewed: false` and must be checked by hand before it reaches a
-learner. Nothing else in the project depends on code that doesn't exist now —
-only on that generation-plus-review pass.
+The 25 N5 points are hand-written in `scripts/import/grammar-n5.ts` (no AI) and
+seeded with `npm run grammar:n5`. They sit `reviewed: false` — hidden from
+learners until checked. Two things remain:
 
-`npm run grammar N5` performs the run once a key is available.
+- **Review and publish**: flip `reviewed: true` on the points that pass.
+- **Furigana**: example sentences use kanji above N5 (private, 家, 勉強, …),
+  which is normal for a textbook — but the app renders no furigana yet, so a
+  true beginner can't read them. Either add furigana rendering or accept
+  reliance on the translation.
+
+N4–N1 still have to be written; an Anthropic-API generator
+(`scripts/import/grammar.ts`) exists for scaling that when wanted, but N5 shows
+hand-writing is viable.
 
 ### 2. German kanji meanings are missing entirely
 
