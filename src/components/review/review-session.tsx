@@ -7,6 +7,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { submitAnswer } from "@/app/[lang]/(app)/learn/actions";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import { Furigana } from "@/components/furigana";
 import type { ReviewItem } from "@/lib/srs/queue";
 
 type Props = { items: ReviewItem[]; dict: Dictionary; locale: Locale };
@@ -152,9 +153,11 @@ export function ReviewSession({ items, dict, locale }: Props) {
                 give the word away through context. */}
             {item.example && (
               <div className="mt-4 border-t border-surface-border pt-3">
-                <p className="font-jp text-content-base">
-                  {item.example.japanese}
-                </p>
+                <Furigana
+                  className="font-jp text-content-base"
+                  tokens={item.example.tokens}
+                  plain={item.example.japanese}
+                />
                 {item.example.translation && (
                   <p className="mt-0.5 text-sm text-content-faint">
                     {item.example.translation}

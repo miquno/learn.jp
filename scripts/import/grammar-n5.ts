@@ -6,15 +6,20 @@
  * kana table are. The code is the source of truth: re-running updates the text
  * from this file, so edit here, not in the database.
  *
+ * Example sentences carry hand-written furigana in bracket notation
+ * ("[私|わたし]は…"). A kanji's reading depends on context, so it can't be
+ * looked up per character — see src/lib/furigana.ts. The parser derives both
+ * the plain sentence and the reading tokens, so nothing is stored twice.
+ *
  * Every point still lands `reviewed: false` on first insert and stays hidden
- * from learners until a human checks it (see scripts/import/grammar.ts and the
- * lesson query). Re-running does NOT flip an already-reviewed point back — the
- * upsert leaves the flag alone on update, so a release survives a re-seed.
+ * from learners until a human checks it. Re-running does NOT flip an
+ * already-reviewed point back — the upsert leaves the flag alone on update.
  *
  * Order is the teaching sequence: copula and particles first, then polite verb
  * forms, then adjectives, then wants/permissions, then connectors and time.
- * Example sentences stay within N5 vocabulary and common kanji.
  */
+import { parseFurigana, plainText } from "../../src/lib/furigana";
+
 import { db } from "./lib/db";
 import { progress } from "./lib/source";
 
@@ -24,7 +29,8 @@ type Entry = {
   structure: string;
   meaning: { en: string; de: string };
   explanation: { en: string; de: string };
-  examples: { japanese: string; en: string; de: string }[];
+  /** Each example: furigana-annotated Japanese + translations. */
+  examples: { jp: string; en: string; de: string }[];
 };
 
 const N5: Entry[] = [
@@ -38,8 +44,8 @@ const N5: Entry[] = [
       de: "です folgt einem Nomen und bildet eine höfliche Aussage darüber, was etwas ist. Es ist die höfliche Form der einfachen Kopula だ.",
     },
     examples: [
-      { japanese: "私は学生です。", en: "I am a student.", de: "Ich bin Student." },
-      { japanese: "これは本です。", en: "This is a book.", de: "Das ist ein Buch." },
+      { jp: "[私|わたし]は[学生|がくせい]です。", en: "I am a student.", de: "Ich bin Student." },
+      { jp: "これは[本|ほん]です。", en: "This is a book.", de: "Das ist ein Buch." },
     ],
   },
   {
@@ -52,8 +58,8 @@ const N5: Entry[] = [
       de: "は (ausgesprochen „wa“) markiert das Thema — worum es im Satz geht. Alles danach ist eine Aussage über dieses Thema.",
     },
     examples: [
-      { japanese: "私は日本人です。", en: "I am Japanese.", de: "Ich bin Japaner." },
-      { japanese: "今日は寒いです。", en: "Today is cold.", de: "Heute ist es kalt." },
+      { jp: "[私|わたし]は[日本人|にほんじん]です。", en: "I am Japanese.", de: "Ich bin Japaner." },
+      { jp: "[今日|きょう]は[寒|さむ]いです。", en: "Today is cold.", de: "Heute ist es kalt." },
     ],
   },
   {
@@ -66,8 +72,8 @@ const N5: Entry[] = [
       de: "も ersetzt は oder が und bedeutet „auch“. Es sagt, dass dasselbe auch für diesen Fall gilt.",
     },
     examples: [
-      { japanese: "私も学生です。", en: "I am a student too.", de: "Ich bin auch Student." },
-      { japanese: "これもください。", en: "This one too, please.", de: "Das hier auch, bitte." },
+      { jp: "[私|わたし]も[学生|がくせい]です。", en: "I am a student too.", de: "Ich bin auch Student." },
+      { jp: "これもください。", en: "This one too, please.", de: "Das hier auch, bitte." },
     ],
   },
   {
@@ -80,8 +86,8 @@ const N5: Entry[] = [
       de: "の verbindet zwei Nomen; das erste bestimmt das zweite näher. Es deckt Besitz („mein Buch“) und Zugehörigkeit („ein Japanischlehrer“) ab.",
     },
     examples: [
-      { japanese: "これは私の本です。", en: "This is my book.", de: "Das ist mein Buch." },
-      { japanese: "日本語の先生", en: "a Japanese teacher", de: "ein Japanischlehrer" },
+      { jp: "これは[私|わたし]の[本|ほん]です。", en: "This is my book.", de: "Das ist mein Buch." },
+      { jp: "[日本語|にほんご]の[先生|せんせい]", en: "a Japanese teacher", de: "ein Japanischlehrer" },
     ],
   },
   {
@@ -94,8 +100,8 @@ const N5: Entry[] = [
       de: "Ein か am Satzende macht aus dem Satz eine Frage. Die Wortstellung ändert sich nicht.",
     },
     examples: [
-      { japanese: "これは何ですか。", en: "What is this?", de: "Was ist das?" },
-      { japanese: "学生ですか。", en: "Are you a student?", de: "Bist du Student?" },
+      { jp: "これは[何|なん]ですか。", en: "What is this?", de: "Was ist das?" },
+      { jp: "[学生|がくせい]ですか。", en: "Are you a student?", de: "Bist du Student?" },
     ],
   },
   {
@@ -108,8 +114,8 @@ const N5: Entry[] = [
       de: "を (ausgesprochen „o“) markiert das direkte Objekt — das, woran die Handlung geschieht.",
     },
     examples: [
-      { japanese: "パンを食べます。", en: "I eat bread.", de: "Ich esse Brot." },
-      { japanese: "水を飲みます。", en: "I drink water.", de: "Ich trinke Wasser." },
+      { jp: "パンを[食|た]べます。", en: "I eat bread.", de: "Ich esse Brot." },
+      { jp: "[水|みず]を[飲|の]みます。", en: "I drink water.", de: "Ich trinke Wasser." },
     ],
   },
   {
@@ -122,8 +128,8 @@ const N5: Entry[] = [
       de: "に markiert den Ort, an dem sich etwas befindet — zusammen mit あります (Dinge) oder います (Lebewesen).",
     },
     examples: [
-      { japanese: "机の上に本があります。", en: "There is a book on the desk.", de: "Auf dem Tisch liegt ein Buch." },
-      { japanese: "部屋に猫がいます。", en: "There is a cat in the room.", de: "Im Zimmer ist eine Katze." },
+      { jp: "[机|つくえ]の[上|うえ]に[本|ほん]があります。", en: "There is a book on the desk.", de: "Auf dem Tisch liegt ein Buch." },
+      { jp: "[部屋|へや]に[猫|ねこ]がいます。", en: "There is a cat in the room.", de: "Im Zimmer ist eine Katze." },
     ],
   },
   {
@@ -136,8 +142,8 @@ const N5: Entry[] = [
       de: "で markiert den Ort, an dem eine Handlung stattfindet — im Gegensatz zu に, das nur den Ort des Vorhandenseins markiert.",
     },
     examples: [
-      { japanese: "学校で勉強します。", en: "I study at school.", de: "Ich lerne in der Schule." },
-      { japanese: "家でテレビを見ます。", en: "I watch TV at home.", de: "Ich sehe zu Hause fern." },
+      { jp: "[学校|がっこう]で[勉強|べんきょう]します。", en: "I study at school.", de: "Ich lerne in der Schule." },
+      { jp: "[家|いえ]でテレビを[見|み]ます。", en: "I watch TV at home.", de: "Ich sehe zu Hause fern." },
     ],
   },
   {
@@ -150,8 +156,8 @@ const N5: Entry[] = [
       de: "へ (ausgesprochen „e“) und に markieren beide das Ziel einer Bewegung. へ betont die Richtung, に den Ankunftsort; auf N5-Niveau sind sie hier austauschbar.",
     },
     examples: [
-      { japanese: "日本へ行きます。", en: "I go to Japan.", de: "Ich fahre nach Japan." },
-      { japanese: "家に帰ります。", en: "I go home.", de: "Ich gehe nach Hause." },
+      { jp: "[日本|にほん]へ[行|い]きます。", en: "I go to Japan.", de: "Ich fahre nach Japan." },
+      { jp: "[家|いえ]に[帰|かえ]ります。", en: "I go home.", de: "Ich gehe nach Hause." },
     ],
   },
   {
@@ -164,8 +170,8 @@ const N5: Entry[] = [
       de: "と verbindet Nomen zu einer vollständigen Aufzählung („A und B“) oder markiert die Person, mit der man etwas gemeinsam tut.",
     },
     examples: [
-      { japanese: "パンと卵を買います。", en: "I buy bread and eggs.", de: "Ich kaufe Brot und Eier." },
-      { japanese: "友達と行きます。", en: "I go with a friend.", de: "Ich gehe mit einem Freund." },
+      { jp: "パンと[卵|たまご]を[買|か]います。", en: "I buy bread and eggs.", de: "Ich kaufe Brot und Eier." },
+      { jp: "[友達|ともだち]と[行|い]きます。", en: "I go with a friend.", de: "Ich gehe mit einem Freund." },
     ],
   },
   {
@@ -178,8 +184,8 @@ const N5: Entry[] = [
       de: "ます hängt an den Verbstamm und bildet eine höfliche Aussage über Gegenwart oder Zukunft. Es ist die Form, die Anfänger durchgehend verwenden.",
     },
     examples: [
-      { japanese: "毎日日本語を勉強します。", en: "I study Japanese every day.", de: "Ich lerne jeden Tag Japanisch." },
-      { japanese: "七時に起きます。", en: "I get up at seven.", de: "Ich stehe um sieben auf." },
+      { jp: "[毎日|まいにち][日本語|にほんご]を[勉強|べんきょう]します。", en: "I study Japanese every day.", de: "Ich lerne jeden Tag Japanisch." },
+      { jp: "[七時|しちじ]に[起|お]きます。", en: "I get up at seven.", de: "Ich stehe um sieben auf." },
     ],
   },
   {
@@ -192,8 +198,8 @@ const N5: Entry[] = [
       de: "ません ist die höfliche Verneinung von ます — „nicht tun / nicht tun werden“.",
     },
     examples: [
-      { japanese: "お酒を飲みません。", en: "I don't drink alcohol.", de: "Ich trinke keinen Alkohol." },
-      { japanese: "肉を食べません。", en: "I don't eat meat.", de: "Ich esse kein Fleisch." },
+      { jp: "お[酒|さけ]を[飲|の]みません。", en: "I don't drink alcohol.", de: "Ich trinke keinen Alkohol." },
+      { jp: "[肉|にく]を[食|た]べません。", en: "I don't eat meat.", de: "Ich esse kein Fleisch." },
     ],
   },
   {
@@ -206,8 +212,8 @@ const N5: Entry[] = [
       de: "ました ist die höfliche Vergangenheitsform von ます — eine Handlung, die „getan wurde“.",
     },
     examples: [
-      { japanese: "昨日映画を見ました。", en: "I watched a movie yesterday.", de: "Ich habe gestern einen Film gesehen." },
-      { japanese: "手紙を書きました。", en: "I wrote a letter.", de: "Ich habe einen Brief geschrieben." },
+      { jp: "[昨日|きのう][映画|えいが]を[見|み]ました。", en: "I watched a movie yesterday.", de: "Ich habe gestern einen Film gesehen." },
+      { jp: "[手紙|てがみ]を[書|か]きました。", en: "I wrote a letter.", de: "Ich habe einen Brief geschrieben." },
     ],
   },
   {
@@ -220,8 +226,8 @@ const N5: Entry[] = [
       de: "Die て-Form eines Verbs plus ください bildet eine höfliche Bitte — „bitte … tun“.",
     },
     examples: [
-      { japanese: "ちょっと待ってください。", en: "Please wait a moment.", de: "Bitte warte einen Moment." },
-      { japanese: "ここに名前を書いてください。", en: "Please write your name here.", de: "Bitte schreibe hier deinen Namen." },
+      { jp: "ちょっと[待|ま]ってください。", en: "Please wait a moment.", de: "Bitte warte einen Moment." },
+      { jp: "ここに[名前|なまえ]を[書|か]いてください。", en: "Please write your name here.", de: "Bitte schreibe hier deinen Namen." },
     ],
   },
   {
@@ -234,8 +240,8 @@ const N5: Entry[] = [
       de: "Die て-Form plus います beschreibt eine gerade ablaufende Handlung oder einen andauernden Zustand.",
     },
     examples: [
-      { japanese: "今、本を読んでいます。", en: "I am reading a book now.", de: "Ich lese gerade ein Buch." },
-      { japanese: "母は台所で料理をしています。", en: "Mom is cooking in the kitchen.", de: "Mama kocht in der Küche." },
+      { jp: "[今|いま]、[本|ほん]を[読|よ]んでいます。", en: "I am reading a book now.", de: "Ich lese gerade ein Buch." },
+      { jp: "[母|はは]は[台所|だいどころ]で[料理|りょうり]をしています。", en: "Mom is cooking in the kitchen.", de: "Mama kocht in der Küche." },
     ],
   },
   {
@@ -248,8 +254,8 @@ const N5: Entry[] = [
       de: "い-Adjektive enden auf い und stehen entweder direkt vor einem Nomen oder am Satzende mit です.",
     },
     examples: [
-      { japanese: "高い山", en: "a high mountain", de: "ein hoher Berg" },
-      { japanese: "この本は面白いです。", en: "This book is interesting.", de: "Dieses Buch ist interessant." },
+      { jp: "[高|たか]い[山|やま]", en: "a high mountain", de: "ein hoher Berg" },
+      { jp: "この[本|ほん]は[面白|おもしろ]いです。", en: "This book is interesting.", de: "Dieses Buch ist interessant." },
     ],
   },
   {
@@ -262,8 +268,8 @@ const N5: Entry[] = [
       de: "な-Adjektive brauchen ein な vor dem Nomen, das sie näher bestimmen. Am Satzende stehen sie mit です ohne な.",
     },
     examples: [
-      { japanese: "きれいな花", en: "a pretty flower", de: "eine schöne Blume" },
-      { japanese: "この町は静かです。", en: "This town is quiet.", de: "Diese Stadt ist ruhig." },
+      { jp: "きれいな[花|はな]", en: "a pretty flower", de: "eine schöne Blume" },
+      { jp: "この[町|まち]は[静|しず]かです。", en: "This town is quiet.", de: "Diese Stadt ist ruhig." },
     ],
   },
   {
@@ -276,8 +282,8 @@ const N5: Entry[] = [
       de: "Um ein い-Adjektiv in die Vergangenheit zu setzen, lässt man das End-い weg und hängt かった an (plus です für Höflichkeit). です selbst wird hier nicht zu でした.",
     },
     examples: [
-      { japanese: "映画は面白かったです。", en: "The movie was interesting.", de: "Der Film war interessant." },
-      { japanese: "昨日は暑かったです。", en: "Yesterday was hot.", de: "Gestern war es heiß." },
+      { jp: "[映画|えいが]は[面白|おもしろ]かったです。", en: "The movie was interesting.", de: "Der Film war interessant." },
+      { jp: "[昨日|きのう]は[暑|あつ]かったです。", en: "Yesterday was hot.", de: "Gestern war es heiß." },
     ],
   },
   {
@@ -290,8 +296,8 @@ const N5: Entry[] = [
       de: "Hänge たい an den Verbstamm, um zu sagen, dass du etwas tun möchtest. たい selbst wird wie ein い-Adjektiv gebeugt.",
     },
     examples: [
-      { japanese: "水が飲みたいです。", en: "I want to drink water.", de: "Ich möchte Wasser trinken." },
-      { japanese: "日本へ行きたいです。", en: "I want to go to Japan.", de: "Ich möchte nach Japan reisen." },
+      { jp: "[水|みず]が[飲|の]みたいです。", en: "I want to drink water.", de: "Ich möchte Wasser trinken." },
+      { jp: "[日本|にほん]へ[行|い]きたいです。", en: "I want to go to Japan.", de: "Ich möchte nach Japan reisen." },
     ],
   },
   {
@@ -304,8 +310,8 @@ const N5: Entry[] = [
       de: "Die て-Form plus もいいです erteilt Erlaubnis — „du darfst …“. Als Frage (…もいいですか) bittet es um Erlaubnis.",
     },
     examples: [
-      { japanese: "ここに座ってもいいですか。", en: "May I sit here?", de: "Darf ich mich hier hinsetzen?" },
-      { japanese: "写真を撮ってもいいです。", en: "You may take photos.", de: "Du darfst Fotos machen." },
+      { jp: "ここに[座|すわ]ってもいいですか。", en: "May I sit here?", de: "Darf ich mich hier hinsetzen?" },
+      { jp: "[写真|しゃしん]を[撮|と]ってもいいです。", en: "You may take photos.", de: "Du darfst Fotos machen." },
     ],
   },
   {
@@ -318,8 +324,8 @@ const N5: Entry[] = [
       de: "Die ない-Form plus でください ist eine höfliche verneinte Bitte — „bitte nicht …“.",
     },
     examples: [
-      { japanese: "ここで写真を撮らないでください。", en: "Please don't take photos here.", de: "Bitte mache hier keine Fotos." },
-      { japanese: "心配しないでください。", en: "Please don't worry.", de: "Bitte mach dir keine Sorgen." },
+      { jp: "ここで[写真|しゃしん]を[撮|と]らないでください。", en: "Please don't take photos here.", de: "Bitte mache hier keine Fotos." },
+      { jp: "[心配|しんぱい]しないでください。", en: "Please don't worry.", de: "Bitte mach dir keine Sorgen." },
     ],
   },
   {
@@ -332,8 +338,8 @@ const N5: Entry[] = [
       de: "から nach einem Teilsatz gibt den Grund für das Folgende an — „weil [Grund], [Ergebnis]“.",
     },
     examples: [
-      { japanese: "寒いから、窓を閉めます。", en: "Because it's cold, I'll close the window.", de: "Weil es kalt ist, schließe ich das Fenster." },
-      { japanese: "時間がないから、急ぎます。", en: "Because there's no time, I'll hurry.", de: "Weil keine Zeit ist, beeile ich mich." },
+      { jp: "[寒|さむ]いから、[窓|まど]を[閉|し]めます。", en: "Because it's cold, I'll close the window.", de: "Weil es kalt ist, schließe ich das Fenster." },
+      { jp: "[時間|じかん]がないから、[急|いそ]ぎます。", en: "Because there's no time, I'll hurry.", de: "Weil keine Zeit ist, beeile ich mich." },
     ],
   },
   {
@@ -346,8 +352,8 @@ const N5: Entry[] = [
       de: "が zwischen zwei Teilsätzen markiert einen Gegensatz — „[Teilsatz], aber [Teilsatz]“. Das ist etwas anderes als die Subjektpartikel が.",
     },
     examples: [
-      { japanese: "この店は安いですが、おいしくないです。", en: "This restaurant is cheap, but not tasty.", de: "Dieses Lokal ist billig, aber nicht lecker." },
-      { japanese: "日本語は難しいですが、面白いです。", en: "Japanese is difficult, but interesting.", de: "Japanisch ist schwer, aber interessant." },
+      { jp: "この[店|みせ]は[安|やす]いですが、おいしくないです。", en: "This restaurant is cheap, but not tasty.", de: "Dieses Lokal ist billig, aber nicht lecker." },
+      { jp: "[日本語|にほんご]は[難|むずか]しいですが、[面白|おもしろ]いです。", en: "Japanese is difficult, but interesting.", de: "Japanisch ist schwer, aber interessant." },
     ],
   },
   {
@@ -360,8 +366,8 @@ const N5: Entry[] = [
       de: "まえに bedeutet „vor“. Davor steht die Wörterbuchform eines Verbs oder ein Nomen plus の.",
     },
     examples: [
-      { japanese: "寝るまえに、歯を磨きます。", en: "Before sleeping, I brush my teeth.", de: "Vor dem Schlafen putze ich mir die Zähne." },
-      { japanese: "食事のまえに、手を洗います。", en: "Before the meal, I wash my hands.", de: "Vor dem Essen wasche ich mir die Hände." },
+      { jp: "[寝|ね]るまえに、[歯|は]を[磨|みが]きます。", en: "Before sleeping, I brush my teeth.", de: "Vor dem Schlafen putze ich mir die Zähne." },
+      { jp: "[食事|しょくじ]のまえに、[手|て]を[洗|あら]います。", en: "Before the meal, I wash my hands.", de: "Vor dem Essen wasche ich mir die Hände." },
     ],
   },
   {
@@ -374,8 +380,8 @@ const N5: Entry[] = [
       de: "あとで bedeutet „nach“. Davor steht die Vergangenheitsform (た-Form) eines Verbs oder ein Nomen plus の.",
     },
     examples: [
-      { japanese: "仕事のあとで、映画を見ます。", en: "After work, I watch a movie.", de: "Nach der Arbeit sehe ich einen Film." },
-      { japanese: "ご飯を食べたあとで、散歩します。", en: "After eating, I take a walk.", de: "Nach dem Essen mache ich einen Spaziergang." },
+      { jp: "[仕事|しごと]のあとで、[映画|えいが]を[見|み]ます。", en: "After work, I watch a movie.", de: "Nach der Arbeit sehe ich einen Film." },
+      { jp: "ご[飯|はん]を[食|た]べたあとで、[散歩|さんぽ]します。", en: "After eating, I take a walk.", de: "Nach dem Essen mache ich einen Spaziergang." },
     ],
   },
 ];
@@ -390,7 +396,8 @@ export async function seedGrammarN5() {
       meaning: entry.meaning,
       explanation: entry.explanation,
       examples: entry.examples.map((ex) => ({
-        japanese: ex.japanese,
+        japanese: plainText(ex.jp),
+        tokens: parseFurigana(ex.jp),
         translations: { de: ex.de, en: ex.en },
       })),
       jlptLevel: "N5" as const,
@@ -410,9 +417,6 @@ export async function seedGrammarN5() {
   const reviewed = await db.grammarPoint.count({ where: { reviewed: true } });
   bar.done();
   console.log(`    ${N5.length} points seeded, ${reviewed} marked reviewed`);
-  console.log(
-    "    all start reviewed:false — check them, then flip the flag to publish",
-  );
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

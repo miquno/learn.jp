@@ -14,7 +14,11 @@ import { getNextGrammar, isGrammarUnlocked } from "@/lib/srs/queue";
 const LESSON_SIZE = 3;
 
 type Localised = { de?: string; en?: string };
-type Example = { japanese: string; translations: Record<string, string> };
+type Example = {
+  japanese: string;
+  tokens: import("@/lib/furigana").FuriToken[];
+  translations: Record<string, string>;
+};
 
 export default async function GrammarLessonPage({
   params,
@@ -68,6 +72,7 @@ export default async function GrammarLessonPage({
       explanation: explanation[lang] ?? explanation.en ?? "",
       examples: examples.map((example) => ({
         japanese: example.japanese,
+        tokens: example.tokens ?? [],
         translation: example.translations[lang] ?? null,
       })),
     };

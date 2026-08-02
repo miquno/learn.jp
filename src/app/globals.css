@@ -67,3 +67,12 @@
 @utility font-jp {
   font-family: var(--font-jp);
 }
+
+/* Furigana: small reading above the kanji, a touch faded so the kanji stays
+   the focus. ruby reserves the space above the line itself. */
+ruby rt {
+  font-size: 0.5em;
+  font-weight: 400;
+  color: var(--color-content-muted);
+  user-select: none;
+}

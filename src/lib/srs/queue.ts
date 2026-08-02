@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SrsItemType } from "@/generated/prisma/enums";
+import type { FuriToken } from "@/lib/furigana";
 import type { Locale } from "@/i18n/config";
 import { db } from "@/lib/db";
 
@@ -15,7 +16,7 @@ export type ReviewItem = {
   /** Meaning in the user's language, where available. */
   meaning: string | null;
   /** One example sentence, for word cards. */
-  example: { japanese: string; translation: string | null } | null;
+  example: { japanese: string; tokens: FuriToken[]; translation: string | null } | null;
   isNew: boolean;
 };
 
@@ -41,6 +42,7 @@ function exampleOf(links: LinkedSentence[], locale: Locale) {
   const translations = first.translations as Record<string, string> | null;
   return {
     japanese: first.japanese,
+    tokens: [] as FuriToken[],
     translation: translations?.[locale] ?? null,
   };
 }
@@ -107,6 +109,7 @@ export async function getDueCards(
       const meanings = card.grammar.meaning as { de?: string; en?: string };
       const examples = card.grammar.examples as {
         japanese: string;
+        tokens?: FuriToken[];
         translations: Record<string, string>;
       }[];
       const first = examples[0];
@@ -119,7 +122,11 @@ export async function getDueCards(
         reading: meanings[locale] ?? meanings.en ?? "",
         meaning: card.grammar.structure,
         example: first
-          ? { japanese: first.japanese, translation: first.translations[locale] ?? null }
+          ? {
+              japanese: first.japanese,
+              tokens: first.tokens ?? [],
+              translation: first.translations[locale] ?? null,
+            }
           : null,
         isNew: card.state === "new",
       }];

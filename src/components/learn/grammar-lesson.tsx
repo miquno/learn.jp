@@ -4,8 +4,10 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
 import { beginGrammarLesson } from "@/app/[lang]/(app)/learn/actions";
+import { Furigana } from "@/components/furigana";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/get-dictionary";
+import type { FuriToken } from "@/lib/furigana";
 
 export type GrammarCard = {
   id: string;
@@ -13,7 +15,11 @@ export type GrammarCard = {
   structure: string;
   meaning: string;
   explanation: string;
-  examples: { japanese: string; translation: string | null }[];
+  examples: {
+    japanese: string;
+    tokens: FuriToken[];
+    translation: string | null;
+  }[];
 };
 
 type Props = { points: GrammarCard[]; dict: Dictionary; locale: Locale };
@@ -61,9 +67,11 @@ export function GrammarLesson({ points, dict, locale }: Props) {
               <div className="mt-3 flex flex-col gap-2 border-l-2 border-surface-border pl-3">
                 {point.examples.map((example, index) => (
                   <div key={index}>
-                    <p className="font-jp text-content-base">
-                      {example.japanese}
-                    </p>
+                    <Furigana
+                      className="font-jp text-content-base"
+                      tokens={example.tokens}
+                      plain={example.japanese}
+                    />
                     {example.translation && (
                       <p className="text-sm text-content-faint">
                         {example.translation}

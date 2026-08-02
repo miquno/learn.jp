@@ -26,40 +26,22 @@ Last updated after the avatar system landed.
   20 most frequent words each
 - **Vocabulary lessons and reviews** — flashcards in JLPT order with example
   sentences, gated behind hiragana; JLPT progress panel on the dashboard
-- **Grammar machinery** — schema, lessons, reviews, unlock gate, and an
-  Anthropic-API generator; verified end to end with a placeholder point.
-  Awaiting a generation run (see blocker 1)
+- **Grammar (N5)** — 25 points hand-written (no AI), published, with lessons
+  and reviews; gated behind hiragana. An Anthropic-API generator exists for
+  scaling N4–N1 later
+- **Furigana** — authored per sentence in bracket notation (readings can't be
+  looked up per character), rendered with native <ruby>; on grammar examples
 
 ## Blockers
 
 These hold up more than one thing downstream. Worth doing first.
 
-### 1. Grammar content: N5 written, awaiting review and furigana
-
-The 25 N5 points are hand-written in `scripts/import/grammar-n5.ts` (no AI) and
-seeded with `npm run grammar:n5`. They sit `reviewed: false` — hidden from
-learners until checked. Two things remain:
-
-- **Review and publish**: flip `reviewed: true` on the points that pass.
-- **Furigana**: example sentences use kanji above N5 (private, 家, 勉強, …),
-  which is normal for a textbook — but the app renders no furigana yet, so a
-  true beginner can't read them. Either add furigana rendering or accept
-  reliance on the translation.
-
-N4–N1 still have to be written; an Anthropic-API generator
-(`scripts/import/grammar.ts`) exists for scaling that when wanted, but N5 shows
-hand-writing is viable.
-
-### 2. German kanji meanings are missing entirely
+### 1. German kanji meanings are missing entirely
 
 0 of 10,384 kanji have a German meaning; KANJIDIC2 ships no German. Same
 treatment as grammar: generate, then review.
 
-### 3. Kanji are not linked to the words they appear in
-
-`kanji_words` is empty, which the kanji browser needs to show "words using
-this character". Cheaper than the sentence linking that is already done —
-the characters of a word's written form are the link.
+(Kanji-to-word links are done — see the list above.)
 
 ## Next up
 
@@ -67,7 +49,7 @@ the characters of a word's written form are the link.
 
 Mostly done — remaining:
 
-- Generate and review the N5 grammar content (blocker 1)
+- N4–N1 grammar (N5 is written and published)
 - Progress screens beyond the current one: grammar, kanji, conjugation
   breakdowns (kana and vocabulary already have theirs)
 
